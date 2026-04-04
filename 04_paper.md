@@ -58,12 +58,6 @@ Gaussian-LIC2 则进一步将研究重点从单纯的视觉渲染质量推进到
 
 从本文关注的方向来看，多传感器 Gaussian-LIC 系列已经解决了一个非常关键的问题，即如何在外部稳定前端支撑下持续完成照片级增量建图；但它们仍未充分解决两个问题：其一，3DGS 在表面建模上的几何不一致会限制深度、法线和后续几何任务的质量；其二，现有学习型先验大多只被用作深度补全，而尚未系统地扩展到高斯的尺度、方向和扩展区域筛选。
 
-## D. 本文工作的定位
-
-不同于将主要贡献放在前端里程计或统一 SLAM 框架上的工作，本文工作的重点是：在外部稳定前端提供位姿的前提下，围绕增量式场景重建后端改进高斯地图表示、初始化与扩展机制。具体而言，本文与现有工作的区别主要体现在两点。
-
-第一，本文不再沿用 3DGS 体高斯作为默认地图原语，而是进一步引入 2DGS 的表面化表示思想，以改善增量式系统中长期存在的几何不稳定、深度漂移和表面模糊问题。第二，本文不把前馈高斯方法视为替代在线系统的独立重建器，而是将其重新定位为 initialize/extend 阶段的先验模块，用于弥补 LiDAR 盲区、低纹理区域和早期低视差阶段的初始化不足。换言之，本文的核心目标并不是重新设计一个更复杂的 SLAM 前端，而是在 Gaussian-LIC 一类多传感器增量建图框架内，通过 2DGS 与前馈先验的结合，构建一个几何更一致、初始化更充分、在线更新更高效的高斯地图后端。
-
 ---
 
 # III. Method
@@ -73,6 +67,7 @@ Gaussian-LIC2 则进一步将研究重点从单纯的视觉渲染质量推进到
 本系统是一个基于外部位姿前端的增量式 2DGS 场景重建系统。系统接收外部 LiDAR-Inertial-Camera 前端（如 R3Live）实时输出的同步数据流：每帧包含 RGB 图像、稀疏 LiDAR 点云和 6-DOF 相机位姿。系统以 2DGS surfel 为基础地图表示，核心处理流程如下（如图 X 所示）：
 
 对于每个到达的新关键帧：
+
 1. **候选点生成**：将稀疏 LiDAR 点投影到图像平面形成稀疏深度图，经 SPNet 深度补全后在 LiDAR 盲区生成补充 3D 候选点。同时，DA3 单目深度估计模型预测稠密深度并与 LiDAR 对齐，由此计算候选点的法线先验。
 2. **候选点筛选**：对当前高斯地图进行渲染，根据渲染透明度和颜色误差识别欠重建区域，结合颜色梯度过滤和体素下采样，确定最终需要新增高斯的候选点集。
 3. **前馈属性回归**：将候选点及其几何先验（逆深度、DA3 法线、像素间距等）送入前馈回归网络。该网络利用共享 backbone 提取的当前帧与历史帧的原始/渲染图像特征，通过跨注意力融合多视角上下文，直接预测每个候选点的完整 2DGS surfel 属性（2D 尺度、旋转、不透明度、SH 颜色、位置修正）。
@@ -136,6 +131,7 @@ DA3 的职责是**确定"surfel 朝哪个方向"**，即为后续的前馈旋转
 **共享 Backbone 特征提取**：系统使用一个共享权重、冻结参数的 ResNet backbone 对所有图像统一提取逐像素 $D$-维（$D=128$）特征图。该 backbone 以 InstanceNorm 替代 BatchNorm，从多尺度 ResNet 特征层通过 $1 \times 1$ 卷积投影至统一维度后双线性上采样并求和，得到分辨率与输入图像相同的 dense feature map。Backbone 权重从 pixelSplat 预训练检查点中提取，通过 TorchScript 导出后在 C++ 中以 LibTorch 进行推理。
 
 Backbone 对以下四类图像分别提取特征图：
+
 - 当前帧原始图像 $I_t \to F_t^{\text{img}}$
 - 当前帧渲染图像 $\hat{I}_t \to F_t^{\text{ren}}$（用当前高斯地图从当前视角渲染）
 - 滑窗内历史帧原始图像 $\{I_{t-k}\} \to \{F_{t-k}^{\text{img}}\}$
@@ -143,7 +139,7 @@ Backbone 对以下四类图像分别提取特征图：
 
 其中渲染图像的引入使网络能感知"当前地图在该位置的重建状态"，渲染特征与原始特征的差异隐式指示了该区域的重建不足程度。
 
-**当前帧特征采样**：对每个候选点，以其像素坐标 $\mathbf{u}_i$ 在 $F_t^{\text{img}}$ 和 $F_t^{\text{ren}}$ 上进行双线性 grid_sample，得到逐点特征 $\mathbf{f}_i^{\text{curr}} \in \mathbb{R}^{D}$ 和 $\mathbf{f}_i^{\text{ren}} \in \mathbb{R}^{D}$。同时计算当前帧下的归一化观察方向 $\mathbf{d}_i^{\text{curr}} = \text{normalize}(R_{\text{cw}} \boldsymbol{\mu}_i + \mathbf{t}_{\text{cw}})$。
+**当前帧特征采样**：对每个候选点，以其像素坐标 $\mathbf{u}_i$ 在 $F_t^{\text{img}}$ 和 $F_t^{\text{ren}}$ 上进行双线性 grid*sample，得到逐点特征 $\mathbf{f}_i^{\text{curr}} \in \mathbb{R}^{D}$ 和 $\mathbf{f}_i^{\text{ren}} \in \mathbb{R}^{D}$。同时计算当前帧下的归一化观察方向 $\mathbf{d}\_i^{\text{curr}} = \text{normalize}(R*{\text{cw}} \boldsymbol{\mu}_i + \mathbf{t}_{\text{cw}})$。
 
 **历史帧投影与特征采样**：对滑窗内 $W$ 帧历史关键帧，逐帧将候选点的世界坐标投影到该历史帧的图像平面，进行可见性判断（正向深度且落在图像范围内），在通过可见性的像素位置上分别从 $F_{t-k}^{\text{img}}$ 和 $F_{t-k}^{\text{ren}}$ 采样，得到：
 
@@ -190,13 +186,13 @@ $$\mathbf{h}_i = \text{ResBlock}^4 (\text{ReLU}(\text{Linear}_{544 \to 512}(\mat
 这是本方法最核心的几何约束设计。系统不直接回归四元数（无约束空间中容易产生几何不一致的解），而是以 DA3 提供的相机空间法线 $\mathbf{n}_i^{\text{cam}}$ 为锚点，由网络预测修正量，通过正交化过程推导完整旋转：
 
 1. **法线修正**：网络预测修正向量 $\delta \mathbf{z}_i \in \mathbb{R}^3$、混合强度 $\lambda_i = \text{softplus}(\cdot) \in \mathbb{R}_{>0}$ 和辅助向量 $\mathbf{a}_i \in \mathbb{R}^3$。修正后的法线方向为：
-$$\mathbf{z}_i = \text{normalize}(\mathbf{n}_i^{\text{cam}} + \lambda_i \cdot \delta \mathbf{z}_i)$$
+   $$\mathbf{z}_i = \text{normalize}(\mathbf{n}_i^{\text{cam}} + \lambda_i \cdot \delta \mathbf{z}_i)$$
 
 2. **正交基构造**（Gram-Schmidt 过程）：利用辅助向量通过叉积构造正交基：
-$$\mathbf{y}_i = \text{normalize}(\mathbf{z}_i \times \mathbf{a}_i), \quad \mathbf{x}_i = \mathbf{y}_i \times \mathbf{z}_i$$
+   $$\mathbf{y}_i = \text{normalize}(\mathbf{z}_i \times \mathbf{a}_i), \quad \mathbf{x}_i = \mathbf{y}_i \times \mathbf{z}_i$$
 
 3. **世界系旋转**：将相机系旋转矩阵通过当前帧位姿转换到世界系，再转为四元数：
-$$R_i^{\text{world}} = R_{\text{wc}} \cdot [\mathbf{x}_i \mid \mathbf{y}_i \mid \mathbf{z}_i], \quad \mathbf{q}_i = \text{mat2quat}(R_i^{\text{world}})$$
+   $$R_i^{\text{world}} = R_{\text{wc}} \cdot [\mathbf{x}_i \mid \mathbf{y}_i \mid \mathbf{z}_i], \quad \mathbf{q}_i = \text{mat2quat}(R_i^{\text{world}})$$
 
 初始化设计确保网络起步时紧靠几何先验：$\lambda$ 头的 bias 初始化为 $-2.0$（使 $\text{softplus}(-2) \approx 0.13$，初始修正幅度很小），$\mathbf{a}$ 头的 bias 初始化为 $0.1$（避免退化叉积）。这保证了在训练初期，surfel 法线方向几乎完全由 DA3 先验决定，网络逐步学习必要的偏离。
 
@@ -281,14 +277,3 @@ $$\mathcal{L}_{\text{online}} = (1 - \lambda_{\text{ssim}}) \cdot \mathcal{L}_1 
 系统采用多优先级的训练视图选择策略，按以下层级组织每轮优化的视图集合：最新滑窗关键帧（最高优先级）→ 高损失帧 → 其余帧（随机采样）。优化器采用稀疏 Adam（SparseGaussianAdam），每次仅更新当前渲染视图下可见的高斯子集，显著提升大规模地图的优化效率。
 
 新插入的高斯在前若干步优化中获得位置梯度增强（默认 2.0 倍），加速其从初始预测位置调整到最优位置。
-
----
-
-# 对 Related Works 的审校说明
-
-经审校，related_works.md 整体质量良好，论述逻辑清晰、定位准确。以下是需要注意的几点：
-
-1. **准确性**：文中提到的各方法（MonoGS、GS-SLAM、SplaTAM、Splat-SLAM、DROID-Splat、GI-SLAM、WildGS-SLAM、Gaussian-LIC/LIC2、GS-LIVM、GS-LIVO 等）均为该领域真实存在的工作，引用方向正确。
-2. **SplatMAP、FeatureSLAM、SEGS-SLAM** 这几个名字需要确认其正式论文名称和引用是否准确——建议在最终版本中核实其 BibTeX 条目。如果某个名称查不到确切论文，可考虑替换为同方向的其他工作。
-3. **定位段落**写得很好，准确地将本文工作与前端里程计工作和全前馈重建方法区分开来。
-4. **建议补充**：在 A 节讨论前馈高斯方法时，可以考虑简要提及这些方法的训练范式（依赖大规模多视图数据集如 RealEstate10K），从而与本文的自蒸馏训练形成更明确的对比。
