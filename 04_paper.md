@@ -8,7 +8,7 @@
 
 然而，现有增量式高斯 SLAM 系统在地图构建质量上仍面临若干根本性的局限。
 
-**第一，新高斯的初始化依赖手工规则。** 当新关键帧到达时，系统通常基于 LiDAR 点或深度补全结果生成候选点，然后以固定规则赋予其初始属性——尺度由深度线性推算、不透明度设为固定低值、颜色取单帧 DC 分量、旋转无约束或仅对齐视线方向。这种手工初始化质量较差，导致新高斯需要经历较长的在线优化才能收敛到合理状态，在快速运动或低纹理区域尤其脆弱。
+**第一，新高斯的初始化依赖手工规则。** 当新关键帧到达时，系统通常基于 LiDAR 点或深度补全结果生成候选点，然后以固定规则赋予其初始属性——尺度由深度线性推算、不透明度设为固定低值、颜色取单帧 DC 分量、旋转无约束或仅对齐视线方向。这种手工初始化往往质量有限，导致新高斯需要经历较长的在线优化才能收敛到合理状态，在快速运动或低纹理区域尤为脆弱。
 
 **第二，体高斯（3DGS）表示缺乏几何约束。** 标准 3DGS 中的高斯原语为三维椭球体，不具有明确的表面法线和平面几何意义。这限制了深度渲染的几何一致性，也使得几何先验（如单目法线估计）难以与高斯表示有效耦合。近年来，2D Gaussian Splatting（2DGS）通过将高斯压缩为嵌入三维空间的二维有向盘面（surfel），赋予每个原语明确的法线方向和切平面结构，在表面贴合和几何质量上取得了显著进步，但尚未被系统性地引入增量式 SLAM 场景。
 
@@ -70,7 +70,7 @@ Gaussian-LIC2 则进一步将研究重点从单纯的视觉渲染质量推进到
 
 1. **候选点生成**：将稀疏 LiDAR 点投影到图像平面形成稀疏深度图，经 SPNet 深度补全后在 LiDAR 盲区生成补充 3D 候选点。同时，DA3 单目深度估计模型预测稠密深度并与 LiDAR 对齐，由此计算候选点的法线先验。
 2. **候选点筛选**：对当前高斯地图进行渲染，根据渲染透明度和颜色误差识别欠重建区域，结合颜色梯度过滤和体素下采样，确定最终需要新增高斯的候选点集。
-3. **前馈属性回归**：将候选点及其几何先验（逆深度、DA3 法线、像素间距等）送入前馈回归网络。该网络利用共享 backbone 提取的当前帧与历史帧的原始/渲染图像特征，通过跨注意力融合多视角上下文，直接预测每个候选点的完整 2DGS surfel 属性（2D 尺度、旋转、不透明度、SH 颜色、位置修正）。
+3. **前馈属性回归**：将候选点及其几何先验（逆深度、DA3 法线、像素间距等）送入前馈回归网络。该网络利用共享 backbone 提取的当前帧与历史帧的原始/渲染图像特征，通过跨注意力融合多视角上下文，直接回归每个候选点的 surfel 属性。
 4. **地图更新与在线优化**：预测的新高斯插入地图后，系统在滑窗内的关键帧上进行多轮在线优化，以光度损失（L1 + SSIM）及 2DGS 几何约束损失（深度畸变 + 法线一致性）联合驱动高斯属性收敛。
 
 非关键帧仅接收位姿而不触发地图扩展。前馈回归网络的训练通过自蒸馏闭环完成：系统以 naive 模式（不使用前馈网络）运行一遍场景，收集经在线优化和离线 refine 后的高斯属性作为伪 GT，回溯构造训练样本，离线训练前馈网络后重新部署。
@@ -85,13 +85,11 @@ Gaussian-LIC2 则进一步将研究重点从单纯的视觉渲染质量推进到
 - **不透明度** $\alpha \in (0, 1)$：存储为 logit 空间值 $\tilde{\alpha} = \sigma^{-1}(\alpha)$。
 - **球谐颜色** $\mathbf{c}_{\text{dc}} \in \mathbb{R}^{1 \times 3}$，$\mathbf{c}_{\text{rest}} \in \mathbb{R}^{15 \times 3}$：0 阶 DC 分量和 1--3 阶 SH 系数。
 
-2DGS 的关键优势在于其几何可解释性：每个 surfel 具有明确的法线方向（旋转四元数的 z 轴），使其天然适合接受法线先验约束。系统在渲染时采用 2DGS 专用的 surfel rasterizer，其额外输出法线图、中值深度图和畸变图，用于计算几何约束损失：
+2DGS 的关键优势在于其几何可解释性：每个 surfel 具有明确的法线方向（由旋转四元数的 z 轴给出），因此能够自然地接受法线先验约束。系统在渲染阶段采用适配增量式建图流程的 2DGS surfel rasterizer，并沿用 2DGS 的几何约束形式：
 
 $$\mathcal{L}_{\text{geo}} = \lambda_{\text{dist}} \cdot \mathcal{L}_{\text{distortion}} + \lambda_{\text{normal}} \cdot \mathcal{L}_{\text{normal}}$$
 
 其中 $\mathcal{L}_{\text{distortion}}$ 约束渲染射线上 surfel 的分布紧凑性，$\mathcal{L}_{\text{normal}}$ 约束渲染法线与表面法线的一致性。
-
-选择 2DGS 而非 3DGS 并非仅为改善渲染质量，更重要的是它为本文的几何约束回归参数化提供了表示层面的基础——正是因为 surfel 具有明确的法线语义，DA3 法线先验才能作为旋转预测的锚点嵌入前馈网络。
 
 ## C. 稠密几何先验
 
@@ -126,9 +124,9 @@ DA3 的职责是**确定"surfel 朝哪个方向"**，即为后续的前馈旋转
 
 ### D.1 逐点上下文构造
 
-前馈网络的输入准备核心在于逐点对齐的上下文构造（point-aligned context construction）。与全局图像编码方案不同，本方法对每个候选 3D 点独立构造其多视角上下文特征，确保网络输入精确对应每个 surfel 的局部观测。
+前馈网络的输入准备核心在于逐点对齐的上下文构造（point-aligned context construction）。与 pixelSplat、MVSplat 等需要从图像中同时推断几何与高斯属性的离线纯视觉方法不同，本文已经通过 LiDAR 与深度先验获得候选点，因此无需再让网络隐式恢复位置；我们只需将候选点显式投影到共视窗口，并在逐点层面构造多视角上下文特征，使每个输入向量都与一个待插入的 surfel 一一对应。
 
-**共享 Backbone 特征提取**：系统使用一个共享权重、冻结参数的 ResNet backbone 对所有图像统一提取逐像素 $D$-维（$D=128$）特征图。该 backbone 以 InstanceNorm 替代 BatchNorm，从多尺度 ResNet 特征层通过 $1 \times 1$ 卷积投影至统一维度后双线性上采样并求和，得到分辨率与输入图像相同的 dense feature map。Backbone 权重从 pixelSplat 预训练检查点中提取，通过 TorchScript 导出后在 C++ 中以 LibTorch 进行推理。
+**共享 Backbone 特征提取**：特征提取模块沿用 pixelSplat 的 backbone 设计：从多尺度 ResNet 特征层经 $1 \times 1$ 卷积投影到统一维度，再经双线性上采样后求和，得到与输入图像同分辨率的 dense feature map。为降低训练成本并提高稳定性，我们直接复用 pixelSplat 发布权重中的 backbone 参数，并在训练过程中保持冻结。
 
 Backbone 对以下四类图像分别提取特征图：
 
@@ -139,13 +137,13 @@ Backbone 对以下四类图像分别提取特征图：
 
 其中渲染图像的引入使网络能感知"当前地图在该位置的重建状态"，渲染特征与原始特征的差异隐式指示了该区域的重建不足程度。
 
-**当前帧特征采样**：对每个候选点，以其像素坐标 $\mathbf{u}_i$ 在 $F_t^{\text{img}}$ 和 $F_t^{\text{ren}}$ 上进行双线性 grid*sample，得到逐点特征 $\mathbf{f}_i^{\text{curr}} \in \mathbb{R}^{D}$ 和 $\mathbf{f}_i^{\text{ren}} \in \mathbb{R}^{D}$。同时计算当前帧下的归一化观察方向 $\mathbf{d}\_i^{\text{curr}} = \text{normalize}(R*{\text{cw}} \boldsymbol{\mu}_i + \mathbf{t}_{\text{cw}})$。
+**当前帧特征采样**：对每个候选点，以其像素坐标 $\mathbf{u}_i$ 在 $F_t^{\text{img}}$ 和 $F_t^{\text{ren}}$ 上进行双线性 `grid_sample`，得到逐点特征 $\mathbf{f}_i^{\text{curr}} \in \mathbb{R}^{D}$ 和 $\mathbf{f}_i^{\text{ren}} \in \mathbb{R}^{D}$。同时计算当前帧下的归一化观察方向 $\mathbf{d}_i^{\text{curr}} = \text{normalize}(R_{\text{cw}} \boldsymbol{\mu}_i + \mathbf{t}_{\text{cw}})$。
 
-**历史帧投影与特征采样**：对滑窗内 $W$ 帧历史关键帧，逐帧将候选点的世界坐标投影到该历史帧的图像平面，进行可见性判断（正向深度且落在图像范围内），在通过可见性的像素位置上分别从 $F_{t-k}^{\text{img}}$ 和 $F_{t-k}^{\text{ren}}$ 采样，得到：
+**历史帧投影与特征采样**：对共视窗口内 $W$ 帧历史关键帧，逐帧将候选点的世界坐标投影到该历史帧的图像平面，进行可见性判断（正向深度且落在图像范围内），在通过可见性的像素位置上分别从 $F_{t-k}^{\text{img}}$ 和 $F_{t-k}^{\text{ren}}$ 采样，得到：
 
 $$\mathbf{f}_i^{\text{hist}} \in \mathbb{R}^{W \times D}, \quad \mathbf{f}_i^{\text{hist\_ren}} \in \mathbb{R}^{W \times D}, \quad \mathbf{m}_i^{\text{hist}} \in \{0, 1\}^{W}$$
 
-同时计算每帧的观察方向（统一到当前帧坐标系表达）：$\mathbf{d}_{i,k}^{\text{hist}} = \text{normalize}(R_{\text{cw}}^t (\boldsymbol{\mu}_i - \mathbf{c}_{t-k}))$，其中 $\mathbf{c}_{t-k}$ 为历史帧相机中心。方向统一化使跨帧方向在同一坐标系下具有可比性，为注意力权重计算提供了几何基础。
+同时计算每帧的观察方向（统一到当前帧坐标系表达）：$\mathbf{d}_{i,k}^{\text{hist}} = \text{normalize}(R_{\text{cw}}^t (\boldsymbol{\mu}_i - \mathbf{c}_{t-k}))$，其中 $\mathbf{c}_{t-k}$ 为历史帧相机中心。该方向编码随后与历史特征一同送入注意力模块。
 
 ### D.2 跨注意力时序上下文融合
 
@@ -183,7 +181,7 @@ $$\mathbf{h}_i = \text{ResBlock}^4 (\text{ReLU}(\text{Linear}_{544 \to 512}(\mat
 
 #### (a) 法线引导的旋转构造
 
-这是本方法最核心的几何约束设计。系统不直接回归四元数（无约束空间中容易产生几何不一致的解），而是以 DA3 提供的相机空间法线 $\mathbf{n}_i^{\text{cam}}$ 为锚点，由网络预测修正量，通过正交化过程推导完整旋转：
+系统不直接回归四元数（无约束空间中容易产生几何不一致的解），而是以 DA3 提供的相机空间法线 $\mathbf{n}_i^{\text{cam}}$ 为锚点，由网络预测修正量，通过正交化过程推导完整旋转：
 
 1. **法线修正**：网络预测修正向量 $\delta \mathbf{z}_i \in \mathbb{R}^3$、混合强度 $\lambda_i = \text{softplus}(\cdot) \in \mathbb{R}_{>0}$ 和辅助向量 $\mathbf{a}_i \in \mathbb{R}^3$。修正后的法线方向为：
    $$\mathbf{z}_i = \text{normalize}(\mathbf{n}_i^{\text{cam}} + \lambda_i \cdot \delta \mathbf{z}_i)$$
@@ -208,21 +206,9 @@ $$\mathbf{s}_i^{\text{world}} = \mathbf{s}_i^{\text{pixel}} / (\bar{z}_i^{-1} \c
 
 这一参数化使网络无需学习深度依赖的绝对尺度，而只需学习与局部密度相关的相对尺度。
 
-#### (c) 2.5D 残差位置修正
-
-位置不直接在世界坐标空间回归，而是在 2.5D 图像空间做残差修正：
-
-$$u_i' = u_i + \Delta u_i, \quad v_i' = v_i + \Delta v_i, \quad \bar{z}_i'^{-1} = \bar{z}_i^{-1} + \Delta \bar{z}_i^{-1}$$
-
-$\Delta u$、$\Delta v$ 和 $\Delta \bar{z}^{-1}$ 的预测头均采用零初始化（权重和 bias 均为 0），确保网络从精确的 2.5D 几何先验起步。修正后通过标准反投影得到世界坐标：
-
-$$z_i = 1 / \bar{z}_i'^{-1}, \quad \boldsymbol{\mu}_i^{\text{cam}} = [(u_i' - c_x) z_i / f_x,\; (v_i' - c_y) z_i / f_y,\; z_i]^\top$$
-
-$$\boldsymbol{\mu}_i = R_{\text{wc}} \boldsymbol{\mu}_i^{\text{cam}} + \mathbf{t}_{\text{wc}}$$
-
 #### (d) 颜色组装
 
-DC 颜色头输出残差 $\Delta \mathbf{c}_i^{\text{dc}} \in \mathbb{R}^{1 \times 3}$，加到从单帧 RGB 观测推算的 base SH 先验上：
+DC 颜色头输出残差 $\Delta \mathbf{c}_i^{\text{dc}} \in \mathbb{R}^{1 \times 3}$，并加到由单帧 RGB 观测得到的基础 SH 先验上：
 
 $$\mathbf{c}_i^{\text{dc}} = \text{RGB2SH}(\mathbf{I}_i) + \Delta \mathbf{c}_i^{\text{dc}}$$
 
@@ -244,7 +230,7 @@ $$\mathbf{c}_i^{\text{dc}} = \text{RGB2SH}(\mathbf{I}_i) + \Delta \mathbf{c}_i^{
 - 运行结束后进行离线 refine（继续优化至收敛），得到最终高斯属性。
 - 回溯每个关键帧，以因果正确的方式重新构造上下文特征：对每帧，仅使用该帧加入**之前**已存在的高斯进行渲染（不泄露未来信息），提取 backbone 特征并完成逐点上下文构造。
 
-采集产物以**高斯为核心单位**组织：每个训练样本对应一个高斯 seed，包含其上下文特征向量（当前/历史帧的原始/渲染特征、方向、掩码、逆深度、法线等共 15 类张量）作为输入，以及收敛后的高斯属性（位置、尺度、旋转、不透明度、SH 颜色）作为标签。
+采集产物以**高斯为核心单位**组织：每个训练样本对应一个高斯 seed，包含其上下文特征向量（当前/历史帧的原始/渲染特征、方向、掩码、逆深度、法线等共 15 类张量）作为输入，以及收敛后的高斯属性（尺度、旋转、不透明度、SH 颜色）作为标签。
 
 ### E.2 尺度-旋转歧义消解
 
@@ -256,7 +242,7 @@ $$\mathbf{c}_i^{\text{dc}} = \text{RGB2SH}(\mathbf{I}_i) + \Delta \mathbf{c}_i^{
 
 网络以多任务 loss 联合训练，涵盖所有预测属性：
 
-$$\mathcal{L} = \lambda_s \mathcal{L}_{\text{scale}} + \lambda_r \mathcal{L}_{\text{rot}} + \lambda_{\text{dc}} \mathcal{L}_{\text{dc}} + \lambda_{\text{rest}} \mathcal{L}_{\text{rest}} + \lambda_o \mathcal{L}_{\text{opac}} + \lambda_p \mathcal{L}_{\text{pos}}$$
+$$\mathcal{L} = \lambda_s \mathcal{L}_{\text{scale}} + \lambda_r \mathcal{L}_{\text{rot}} + \lambda_{\text{dc}} \mathcal{L}_{\text{dc}} + \lambda_{\text{rest}} \mathcal{L}_{\text{rest}} + \lambda_o \mathcal{L}_{\text{opac}}$$
 
 各项 loss 定义如下：
 
@@ -264,7 +250,6 @@ $$\mathcal{L} = \lambda_s \mathcal{L}_{\text{scale}} + \lambda_r \mathcal{L}_{\t
 - **旋转 loss**：四元数余弦距离 $\mathcal{L}_{\text{rot}} = 1 - |\langle \mathbf{q}_{\text{pred}}, \mathbf{q}_{\text{gt}} \rangle|$。
 - **颜色 loss**：DC 和 rest SH 系数分别以 MSE 监督。
 - **不透明度 loss**：L1 距离。
-- **位置 loss**：将 GT 世界坐标反投影到相机 2.5D 空间，计算像素偏移和逆深度偏移的 L1 距离。
 
 训练采用 Adam 优化器，batch size 为 8192（逐点级，非逐图像级），配合梯度裁剪（max norm = 1.0）和 NaN 检测。
 
@@ -275,5 +260,3 @@ $$\mathcal{L} = \lambda_s \mathcal{L}_{\text{scale}} + \lambda_r \mathcal{L}_{\t
 $$\mathcal{L}_{\text{online}} = (1 - \lambda_{\text{ssim}}) \cdot \mathcal{L}_1 + \lambda_{\text{ssim}} \cdot (1 - \text{SSIM}) + \mathcal{L}_{\text{geo}}$$
 
 系统采用多优先级的训练视图选择策略，按以下层级组织每轮优化的视图集合：最新滑窗关键帧（最高优先级）→ 高损失帧 → 其余帧（随机采样）。优化器采用稀疏 Adam（SparseGaussianAdam），每次仅更新当前渲染视图下可见的高斯子集，显著提升大规模地图的优化效率。
-
-新插入的高斯在前若干步优化中获得位置梯度增强（默认 2.0 倍），加速其从初始预测位置调整到最优位置。
