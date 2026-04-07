@@ -7,6 +7,7 @@
 \usepackage{amssymb}
 \usepackage{booktabs}
 \usepackage{caption}
+\usepackage{afterpage}
 
 \title{Context-Aware Feed-Forward Gaussian Insertion for Incremental 2DGS Mapping}
 \author{}
@@ -18,6 +19,27 @@
 
 % 按章节顺序引入你负责的三个部分，便于后续直接并入总论文。
 \input{01_intro_section.tex}
+
+% 系统整体流程图：放在引言之后，让双栏浮动图优先出现在第 2 页顶部。
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth,height=0.32\textheight,keepaspectratio]{system-pipeline.pdf}
+    \caption{系统整体流程图。}
+    \label{fig:system_pipeline}
+\end{figure*}
+
+% 网络结构图：延后一页进入双栏浮动队列，让它优先出现在第 3 页顶部。
+\afterpage{%
+    \afterpage{%
+        \begin{figure*}[!t]
+            \centering
+            \includegraphics[width=\textwidth,height=0.34\textheight,keepaspectratio]{net-pipeline.pdf}
+            \caption{前馈高斯回归网络结构图。}
+            \label{fig:net_pipeline}
+        \end{figure*}
+    }%
+}
+
 \input{02_related_works_section.tex}
 \input{03_method_section.tex}
 
