@@ -1,0 +1,149 @@
+X. E XPERIMENT R ESULTS
+A. Implementation Details
+We implement the proposed system fully in C++ and
+CUDA. The tracking and mapping modules run in parallel
+and communicate via ROS, with the mapping built upon
+the LibTorch framework. The depth completion network SP-
+Net [110] is deployed with TensorRT for efficient inference.
+For odometry, we reuse the ikd-Tree parameters from FAST-
+LIO2 [99], set the camera pose optimization step N t in
+Sec. VI-B4 to 30. For mapping data preparation, we set N p in
+Sec. VII-A to 10 (Avia, Mid-360), 5 (OS1-64), and 1 (VLP-
+32C). ϵ 1 and ϵ 2 in Sec. VII-B are set to 0.1 m and 50 m,
+respectively. For map expansion, we set τ in Sec. VIII-A2 to
+0.99. As for map optimization, we set the loss weighting λ to
+0.2 and ξ to 0.005, and the number K of selected keyframes
+to 100. All the learning rates for Gaussian attributes follow
+vanilla [2] but do not decay with schedulers. We keep the same
+hyperparameters in all sequences with the same sensor setup
+to ensure a fair and comprehensive evaluation. Experiments
+are run on a desktop PC with an NVIDIA RTX 4090 GPU
+(24 GB VRAM), Intel i9-13900KF CPU, and 64 GB RAM.
+B. Baselines
+This paper focuses on developing an elaborated radiance-
+filed-based SLAM system capable of robust and accurate pose
+estimation while constructing fine-grained photo-realistic 3D
+maps in real time. Therefore, our comparative analysis specif-
+ically targets authentic SLAM systems, explicitly excluding
+pure mapping systems that require a priori ground-truth poses.
+We first evaluate localization performance against state-
+of-the-art traditional LiDAR-Inertial-Camera SLAM systems,
+including optimization-based LVI-SAM [28] and filter-based
+R3LIVE [30] and FAST-LIVO2 [33]. We also include two
+neural SLAM methods: PIN-SLAM [94], a neural LiDAR
+SLAM approach utilizing point-based NeRF for geometry-
+only reconstruction, and DBA-Fusion [118], which integrates
+IMU data into DROID-SLAM [43], currently the most ad-
+vanced neural visual SLAM framework. We run PIN-SLAM
+by feeding in undistorted LiDAR point clouds.
+Furthermore, to evaluate both the localization and photo-
+realistic mapping performances of the entire system, we
+compare against photo-realistic radiance-field-based SLAM,
+including both NeRF-based and 3DGS-based. 1) NeRF-based:
+As no related LiDAR-Camera system is publicly available,
+we adapt the state-of-the-art RGB-D NeRF-based method Co-
+SLAM [13] with pseudo RGB-D input by merging LiDAR
+scans. When rendering the full image, we use SPNet [110] to
+complete the LiDAR depth maps for depth-guided sampling.
+2) 3DGS-based: We compare with the state-of-the-art RGB-
+only method MonoGS [18], which elegantly derives pose
+gradients. Given the scarcity of available LiDAR-Camera
+3DGS-based methods, we run the state-of-the-art RGB-D
+3DGS-based approach SplaTAM [16] using pseudo RGB-
+D images. We also compare against the RGB-D inertial
+method, MM3DGS-SLAM [20], which extends SplaTAM by
+incorporating IMU data, and include a comparison with the
+LiDAR-Inertial-Camera Gaussian Splatting SLAM framework
+Gaussian-LIC [21], where the sky modeling is disabled to
+facilitate depth rendering. For fair comparison, all methods
+are evaluated without loop closure and post-processing.
+
+D. Experiment-2: Evaluation of Mapping
+1) Evaluation Protocols: We assess the performance of
+photo-realistic mapping by evaluating the quality of rendered
+images generated from the Gaussian map. To this end, we
+adopt several widely used metrics, including Peak Signal-
+to-Noise Ratio (PSNR), Structural Similarity Index (SSIM),
+and Learned Perceptual Image Patch Similarity (LPIPS)[2].
+Consistent with MonoGS and SplaTAM, we use AlexNet[119]
+as the backbone network for LPIPS evaluation. When ground-
+truth depth maps are available, we also evaluate geometric
+accuracy using Depth-L1 error computed over valid depth
+regions. It should be noted that we adopt Ours-1 in the
+mapping evaluation and the following experiments.
+Many existing methods [23, 24, 37] report rendering per-
+formance at their respective training views. However, such
+evaluations may be biased due to overfitting and do not reliably
+reflect the quality of photo-realistic mapping, particularly at
+novel views. To ensure a comprehensive and fair evaluation,
+we assess rendering quality on both in-sequence and out-of-
+sequence novel views, explicitly excluding training views.
+In our evaluations, all compared methods are constrained
+to use the same training views, selected using the keyframing
+strategy described in Sec. VII-A, while the remaining non-
+keyframes are used for evaluating in-sequence novel view
+rendering. To eliminate the influence of pose estimation errors
+on mapping performance, all methods are provided with our
+estimated poses for evaluation on public datasets. For our self-
+collected dataset where ground-truth poses are available, both
+our method and the baselines use ground-truth poses to avoid
+trajectory alignment errors, which could significantly affect the
+evaluation of out-of-sequence novel view rendering.
+2) In-Sequence Novel View Synthesis: Tab. III and Tab. IV
+show quantitative evaluation of the rendering results of in-
+sequence novel views across both the pulic datasets and our
+self-collected dataset. Fig. 7 and Fig. 8 present the novel
+view renderings of both RGB and depth in sequence. The
+RGB-only method MonoGS initializes Gaussians at a preset
+constant depth with random noise and subsequently inserts
+new Gaussians based on the rendered depth statistics. In
+small-scale indoor scenarios, the optimization of the inserted
+Gaussians may gradually converge. However, it becomes much
+more challenging in larger scenes, where more and more
+Gaussians with incorrect positions accumulate, resulting in nu-
+merous floaters and poor visual quality. Incorporating LiDARs
+with accurate geometric priors can substantially alleviate this
+problem. For example, Co-SLAM leverages the LiDAR depth
+for ray sampling and supervision of the neural implicit map
+optimization, and its rendered results show relatively clear
+structures. It is capable of rendering beyond the LiDAR FoV
+based on the optimized neural representation, as shown in
+Fig. 7 and Fig. 8. However, the renderings of Co-SLAM appear
+noisy with severe artifacts, even though we specially utilize
+completed depth maps to guide the sampling during full-image
+rendering. In contrast, the LiDAR-incorporated 3DGS-based
+methods MM3DGS-SLAM and Gaussian-LIC exhibit better
+rendering performance. They reliably initialize Gaussians from
+precise LiDAR points. Nonetheless, MM3DGS-SLAM repre-
+sents the scene as isotropic and view-independent Gaussians to
+improve running speed, but unfortunately still fails to achieve
+real-time performance while sacrificing the visual quality.
+Note that MM3DGS-SLAM uses around three times as many
+Gaussians as our method to model the scene. Gaussian-LIC
+underutilizes precise LiDAR depth and ignores to optimize
+the geometric quality of the Gaussian map, leading to poor-
+quality rendered depth. In addition, both methods struggle to
+accurately reconstruct areas unobserved by the LiDAR.
+Our method attains the best in-sequence novel view ren-
+dering performance, both quantitatively and qualitatively. The
+system renders sharper RGB images with fewer artifacts at
+novel views, beyond only overfitting to the training views. It
+successfully reconstructs regions never scanned by the LiDAR,
+such as the ceiling beyond the reach of the VLP-32C, as
+demonstrated in the last row of Fig. 7. Moreover, despite
+relying on sparse LiDAR depth, our method is able to produce
+high-quality depth maps across different LiDAR modalities.
+It is worth noting that severe rolling shutter distortion in
+the images of the M2DGR dataset affects the quality of the
+rendered depth, as illustrated in the last row of Fig. 8.
+3) Out-of-Sequence Novel View Synthesis: We further
+evaluate out-of-sequence novel view rendering on our self-
+collected dataset, which presents a greater challenge than in-
+sequence rendering. For this assessment, views are sampled
+at 10 Hz along the out-of-sequence trajectory. As shown in
+Tab. IV, our method achieves the best results. Fig. 9 illustrates
+the camera trajectories and the corresponding novel view
+rendering results along the out-of-sequence path. Compared
+to our closest baseline, Gaussian-LIC, our Gaussian map is
+more effectively regularized and optimized, leading to sharper
+and higher-fidelity novel view synthesis with fewer artifacts.
