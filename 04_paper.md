@@ -77,19 +77,21 @@ Gaussian-LIC2 则进一步将研究重点从单纯的视觉渲染质量推进到
 
 ## B. 2DGS 表示
 
-本系统以 2D Gaussian Splatting（2DGS）取代标准 3DGS 作为地图基础表示。与 3DGS 中每个高斯为三维椭球体不同，2DGS 中的每个原语为嵌入三维空间的二维有向高斯盘（surfel），其参数包括：
+标准 3DGS 将场景建模为三维高斯椭球体的集合，每个原语由三维协方差矩阵 $\boldsymbol{\Sigma} = \mathbf{R}\mathbf{S}\mathbf{S}^\top\mathbf{R}^\top$ 参数化，其中 $\mathbf{R}$ 为旋转矩阵，$\mathbf{S}$ 为对角尺度矩阵。然而，体高斯的辐射场表示与薄表面的本质特性存在冲突：其不具备原生的表面法线定义，且不同视角下的二维投影截面缺乏多视角一致性，因此在几何约束的引入方面存在固有局限。本系统采用 2D Gaussian Splatting（2DGS）作为地图基础表示，通过将高斯原语从三维椭球体压缩为嵌入三维空间的二维有向高斯盘（surfel），赋予每个原语明确的局部平面几何意义。
 
-- **位置** $\boldsymbol{\mu} \in \mathbb{R}^3$：surfel 中心的世界坐标。
-- **2D 尺度** $\mathbf{s} = (s_1, s_2) \in \mathbb{R}^2_{>0}$：切平面内两个主方向的高斯扩展范围，存储为 log 空间值 $\tilde{\mathbf{s}} = \log \mathbf{s}$。
-- **旋转** $\mathbf{q} \in \mathbb{S}^3$：单位四元数，定义 surfel 的局部坐标系，其中 z 轴对应 surfel 法线方向。
-- **不透明度** $\alpha \in (0, 1)$：存储为 logit 空间值 $\tilde{\alpha} = \sigma^{-1}(\alpha)$。
-- **球谐颜色** $\mathbf{c}_{\text{dc}} \in \mathbb{R}^{1 \times 3}$，$\mathbf{c}_{\text{rest}} \in \mathbb{R}^{15 \times 3}$：0 阶 DC 分量和 1--3 阶 SH 系数。
+具体而言，每个 2DGS surfel 由中心位置 $\boldsymbol{\mu} \in \mathbb{R}^3$、两个正交切线方向 $\mathbf{t}_u$、$\mathbf{t}_v$ 及对应的二维尺度因子 $\mathbf{s} = (s_u, s_v) \in \mathbb{R}^2_{>0}$ 共同定义。surfel 在其切平面上的局部参数化为 $P(u, v) = \boldsymbol{\mu} + s_u \mathbf{t}_u u + s_v \mathbf{t}_v v$，法线方向由切线的叉积自然给出，即 $\mathbf{n} = \mathbf{t}_u \times \mathbf{t}_v$。在实际存储中，系统将方向信息编码为单位四元数 $\mathbf{q} \in \mathbb{S}^3$，其对应旋转矩阵 $\mathbf{R} = [\mathbf{t}_u \mid \mathbf{t}_v \mid \mathbf{n}]$ 的第三列即为 surfel 法线；二维尺度存储于 log 空间以保证正定性。此外，每个 surfel 附带不透明度 $\alpha \in (0,1)$（以 logit 空间存储）和球谐颜色系数（0 阶 DC 分量 $\mathbf{c}_{\text{dc}} \in \mathbb{R}^{1 \times 3}$ 与 1--3 阶系数 $\mathbf{c}_{\text{rest}} \in \mathbb{R}^{15 \times 3}$），用于表达视角依赖的外观。
 
-2DGS 的关键优势在于其几何可解释性：每个 surfel 具有明确的法线方向（由旋转四元数的 z 轴给出），因此能够自然地接受法线先验约束。系统在渲染阶段采用适配增量式建图流程的 2DGS surfel rasterizer，并沿用 2DGS 的几何约束形式：
+渲染阶段，2DGS 采用 ray-splat intersection 代替 3DGS 中的仿射近似投影，通过显式求解射线与 surfel 平面的交点来确定每个像素对应的局部坐标 $(u, v)$，并据此计算高斯权重 $\mathcal{G}(\mathbf{u}) = \exp(-(u^2 + v^2)/2)$。最终，像素颜色通过体积 alpha blending 由前到后逐层累积获得：
 
-$$\mathcal{L}_{\text{geo}} = \lambda_{\text{dist}} \cdot \mathcal{L}_{\text{distortion}} + \lambda_{\text{normal}} \cdot \mathcal{L}_{\text{normal}}$$
+$$\mathbf{c}(\mathbf{x}) = \sum_{i} \mathbf{c}_i \, \alpha_i \, \hat{\mathcal{G}}_i(\mathbf{u}(\mathbf{x})) \prod_{j=1}^{i-1} (1 - \alpha_j \, \hat{\mathcal{G}}_j(\mathbf{u}(\mathbf{x})))$$
 
-其中 $\mathcal{L}_{\text{distortion}}$ 约束渲染射线上 surfel 的分布紧凑性，$\mathcal{L}_{\text{normal}}$ 约束渲染法线与表面法线的一致性。
+其中 $\hat{\mathcal{G}}$ 为结合了 object-space 低通滤波的高斯评估值，用于处理 surfel 在倾斜视角下退化为线段的情况。类似地，系统可通过对深度值和法线向量进行相同的加权累积来渲染稠密深度图和法线图。
+
+2DGS 表示的核心优势在于其几何可解释性：每个 surfel 天然具备明确的法线语义，这使得外部法线先验（如本文所用的 DA3 稠密法线估计）能够直接与 surfel 的旋转参数耦合，为后续的前馈旋转预测提供了几何可解释的锚点。为充分利用这一表面化结构，系统在在线优化中引入两项几何正则化约束：
+
+$$\mathcal{L}_{\text{geo}} = \lambda_{\text{dist}} \, \mathcal{L}_{\text{dist}} + \lambda_{\text{normal}} \, \mathcal{L}_{\text{normal}}$$
+
+深度畸变损失 $\mathcal{L}_{\text{dist}} = \sum_{i,j} \omega_i \omega_j |z_i - z_j|$ 通过最小化同一射线上各 surfel 交点间的加权深度差异，促使沿射线的权重分布向紧凑的单表面集中，抑制体高斯常见的浮动伪影；其中 $\omega_i$ 为第 $i$ 个交点的 blending 权重，$z_i$ 为其深度值。法线一致性损失 $\mathcal{L}_{\text{normal}} = \sum_{i} \omega_i (1 - \mathbf{n}_i^\top \mathbf{N})$ 则约束每个 surfel 自身的法线 $\mathbf{n}_i$ 与由渲染深度图经有限差分估计的表面法线 $\mathbf{N}$ 保持一致，确保 surfel 局部贴合实际物体表面。这两项约束共同为地图的几何质量和后续前馈网络的稳定训练提供了基础。
 
 ## C. 稠密几何先验
 
