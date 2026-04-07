@@ -9,7 +9,7 @@
 \subsection{实验设置}
 我们主要从两方面验证所提方法的有效性：其一，在公开 R3LIVE（Avia）数据集上与现有增量式高斯建图方法进行定量与定性对比；其二，在 \texttt{hku\_campus\_00} 序列上对前馈回归器进行消融分析。对于新视角渲染质量，我们采用 PSNR、SSIM 和 LPIPS 作为评价指标，其中 PSNR 和 SSIM 越高越好，LPIPS 越低越好。除特别说明外，所有方法均在相同数据划分下进行评测，序列中的非训练帧用于序列内新视角评估。
 
-对比方法包括 MonoGS、Co-SLAM、MM3DGS-SLAM、Gaussian-LIC 以及 Gaussian-LIC-2。需要说明的是，本文的重点不在前端里程计，而在高斯地图后端的表示与插入机制，因此实验关注点主要放在地图渲染质量与新高斯的收敛效率上。
+对比方法包括 MonoGS、Co-SLAM、MM3DGS-SLAM、Gaussian-LIC 以及 Gaussian-LIC-2。需要说明的是，这部分实验主要研究高斯地图后端的表示与插入机制，因此关注点主要放在地图渲染质量与新高斯的收敛效率上。
 
 \subsection{与现有方法的对比}
 
@@ -55,7 +55,7 @@ hku\_park\_01 & 12.22 / 0.289 / 0.790 & 13.65 / 0.207 / 0.815 & 15.79 / 0.392 / 
 \label{fig:qualitative_compare}
 \end{figure*}
 
-图~\ref{fig:qualitative_compare} 给出了两组具有代表性的定性结果。对于 \texttt{hku\_campus\_00} 中的室内外过渡场景，MonoGS 几乎无法恢复稳定结构，Gaussian-LIC-2 尽管已经重建出主要几何轮廓，但在强曝光出口附近和右侧公告栏区域仍存在明显模糊与边界发虚；相比之下，本文方法能够更好地保持地面砖块纹理和立柱轮廓。在 \texttt{degenerate\_seq\_00} 场景中，MonoGS 出现了大面积塌陷与错误颜色聚集，Gaussian-LIC-2 虽然恢复了主体结构，但在左下角高亮区域仍有较强拖影；本文方法在整体清晰度与局部一致性上进一步优于基线结果。
+图~\ref{fig:qualitative_compare} 给出了两组具有代表性的定性结果。对于 \texttt{hku\_campus\_00} 中的室内外过渡场景，MonoGS 几乎无法恢复稳定结构，Gaussian-LIC-2 尽管已经重建出主要几何轮廓，但在强曝光出口附近以及右侧立柱区域仍存在明显模糊与边界发虚；相比之下，本文方法能够更好地保持地面砖块纹理和立柱轮廓。在 \texttt{degenerate\_seq\_00} 场景中，MonoGS 出现了大面积塌陷与错误颜色聚集，Gaussian-LIC-2 虽然恢复了主体结构，但在左下角高亮区域仍有较强拖影；本文方法在整体清晰度与局部一致性上进一步优于基线结果。
 
 \subsection{消融实验：前馈回归器的作用}
 
@@ -80,7 +80,7 @@ Ours（8 次优化，4 帧平均） & \textbf{23.21} & \textbf{0.801} & \textbf{
 }
 \end{table}
 
-表~\ref{tab:ablation_regressor} 表明，引入前馈回归器后，最终整段序列的渲染质量取得了稳定提升，其中 PSNR 从 25.44 提升到 25.52，SSIM 从 0.818 提升到 0.820，LPIPS 从 0.157 降低到 0.152。更重要的是，回归器显著改善了新高斯插入后的\textbf{早期收敛质量}：在 4 个代表帧上，经过仅 4 次优化时，平均 PSNR 提升 \textbf{1.48 dB}、SSIM 提升 \textbf{0.087}、LPIPS 降低 \textbf{0.042}；经过 8 次优化时，仍可带来 \textbf{0.90 dB} 的 PSNR 提升和更优的感知质量。这说明本文方法的优势不仅体现在最终上限，更体现在“新高斯一进入地图就更可用”，从而减轻后续在线优化的负担。
+表~\ref{tab:ablation_regressor} 表明，引入前馈回归器后，最终整段序列的渲染质量取得了稳定提升，其中 PSNR 从 25.44 提升到 25.52，SSIM 从 0.818 提升到 0.820，LPIPS 从 0.157 降低到 0.152。更重要的是，回归器显著改善了新高斯插入后的\textbf{早期收敛质量}：在 4 个代表帧上，经过仅 4 次优化时，平均 PSNR 提升 \textbf{1.48 dB}、SSIM 提升 \textbf{0.087}、LPIPS 降低 \textbf{0.042}；经过 8 次优化时，仍可带来 \textbf{0.90 dB} 的 PSNR 提升和更优的感知质量。这说明本文方法的优势不仅体现在最终上限，更体现在能够为新插入高斯提供更高质量的初始属性，从而减轻后续在线优化的负担。
 
 \begin{figure*}[t]
 \centering
@@ -95,7 +95,7 @@ Ours（8 次优化，4 帧平均） & \textbf{23.21} & \textbf{0.801} & \textbf{
 \label{fig:ablation_curves}
 \end{figure*}
 
-图~\ref{fig:ablation_curves} 进一步给出了不同代表帧随优化次数变化的指标曲线。可以看到，加入回归器后，曲线在训练早期普遍具有更好的起点，并更快进入稳定区间。尽管个别帧在单一指标上会出现局部波动，但从 SSIM 与 LPIPS 的整体趋势来看，回归器提供了更稳定的结构恢复和更低的感知误差，这与其“直接预测更接近收敛状态的初始化属性”的设计目标是一致的。
+图~\ref{fig:ablation_curves} 进一步给出了不同代表帧随优化次数变化的指标曲线。可以看到，加入回归器后，曲线在训练早期普遍具有更好的起点，并更快进入稳定区间。尽管个别帧在单一指标上会出现局部波动，但从 SSIM 与 LPIPS 的整体趋势来看，回归器提供了更稳定的结构恢复和更低的感知误差，这说明了我们的回归器学习到了naive系统风格的高斯数据特性，提供了高质量的初始化高斯。
 
 \begin{figure*}[t]
 \centering
@@ -110,12 +110,46 @@ Ours（8 次优化，4 帧平均） & \textbf{23.21} & \textbf{0.801} & \textbf{
 \includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0004/times_0000.jpg} &
 \includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0004/times_0004.jpg} &
 \includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0004/times_0008.jpg} \\
+\rotatebox{90}{Baseline} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/baseline/train_0084/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/baseline/train_0084/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/baseline/train_0084/times_0008.jpg} \\
+\rotatebox{90}{Ours} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0084/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0084/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0084/times_0008.jpg} \\
 \end{tabular}
-\caption{前馈回归器消融的可视化结果。以 \texttt{hku\_campus\_00} 中的代表帧 \texttt{train\_0004} 为例，上行为不使用回归器的 Baseline，下行为加入回归器后的结果。可以看到，回归器在零优化时已经给出了更具语义结构的初始化，在 4 次和 8 次优化后也更快恢复出建筑边界、地面纹理与整体外观。}
-\label{fig:ablation_visual}
+\caption{前馈回归器消融的可视化结果（I）。展示 \texttt{hku\_campus\_00} 中代表帧 \texttt{train\_0004} 与 \texttt{train\_0084} 在 0、4、8 次优化后的渲染结果。对于每个代表帧，上两行为不使用回归器的 Baseline 和加入回归器后的 Ours。可以看到，回归器在零优化时已经给出了更具场景结构的初始化，并在早期优化阶段更快恢复出稳定外观。}
+\label{fig:ablation_visual_1}
 \end{figure*}
 
-图~\ref{fig:ablation_visual} 直观说明了回归器为何能够提升早期收敛速度。在不使用回归器时，初始插入的高斯主要呈现为大量离散且无序的噪声状原语，需要依赖后续多轮优化逐步“拼出”场景；而加入回归器后，即使在 0 次优化时，也已经可以观察到较为合理的场景布局和主体结构，说明网络确实学到了从上下文中直接回归高斯属性的能力。随着优化轮数增加，本文方法能够更快收敛到清晰、稳定的渲染结果。
+\begin{figure*}[t]
+\centering
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{cccc}
+& \small 0 次优化 & \small 4 次优化 & \small 8 次优化 \\
+\rotatebox{90}{Baseline} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/baseline/train_0609/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/baseline/train_0609/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/baseline/train_0609/times_0008.jpg} \\
+\rotatebox{90}{Ours} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0609/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0609/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0609/times_0008.jpg} \\
+\rotatebox{90}{Baseline} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/baseline/train_0784/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/baseline/train_0784/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/baseline/train_0784/times_0008.jpg} \\
+\rotatebox{90}{Ours} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0784/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0784/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{images/self_compare/ours/train_0784/times_0008.jpg} \\
+\end{tabular}
+\caption{前馈回归器消融的可视化结果（II）。展示代表帧 \texttt{train\_0609} 与 \texttt{train\_0784} 在不同优化次数下的对比结果。与图~\ref{fig:ablation_visual_1} 一致，加入回归器后，系统通常能够从更合理的初始高斯状态出发，并在较少优化轮数下获得更清晰、更稳定的渲染。}
+\label{fig:ablation_visual_2}
+\end{figure*}
+
+图~\ref{fig:ablation_visual_1} 和图~\ref{fig:ablation_visual_2} 直观说明了回归器为何能够提升早期收敛速度。在不使用回归器时，初始插入的高斯参数主要由手工规则给出，往往呈现出较强的离散性与无序性，因此需要依赖后续多轮优化逐步与场景对齐；而加入回归器后，即使在 0 次优化时，也已经可以观察到更为合理的场景布局和主体结构。进一步从这些代表帧的可视化结果来看，回归器对不同区域表现出较为明确的自适应倾向：在欠重建或覆盖不足的区域，预测结果通常对应更具覆盖性的高斯配置，从而有助于快速补全主体结构；而在已经形成较好几何支撑或细节较为丰富的区域，预测结果则更倾向于保留较细粒度的高斯分布，以避免过度覆盖细节。类似地，在弱纹理或大面积平滑区域，回归器往往给出尺度相对更大的高斯以提升早期覆盖效率；而在纹理变化更丰富、结构边界更密集的区域，预测高斯通常更小、更集中，从而更有利于细节表达。尽管这些现象仍主要来自定性观察，但它们与本文的设计目标是一致的，即根据局部上下文直接回归更适合当前区域状态的初始高斯属性。随着优化轮数增加，本文方法能够更快收敛到清晰、稳定的渲染结果。
 
 \subsection{结果分析}
 
