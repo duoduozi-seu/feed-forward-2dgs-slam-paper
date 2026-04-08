@@ -24,7 +24,7 @@
 \begin{figure*}[!t]
     \centering
     \includegraphics[width=\textwidth,height=0.32\textheight,keepaspectratio]{system-pipeline.pdf}
-    \caption{系统整体流程图。}
+    \caption{系统整体流程。(A) 外部 LiDAR-惯导-视觉前端提供同步的 RGB 图像、LiDAR 观测、IMU 信息和相机位姿。(B) 系统利用 SPNet 深度补全和 DA3 法线估计生成稠密几何先验，并与 LiDAR 点共同形成欠重建区域的候选种子。(C) 对于每个候选点，前馈高斯回归器聚合逐点对齐的多视图上下文，直接预测完整的 2DGS surfel 属性。(D) 预测得到的新 surfel 被插入增量地图后，再结合在线优化进一步更新；同时，当前地图的渲染结果继续作为后续插点的上下文输入。}
     \label{fig:system_pipeline}
 \end{figure*}
 
@@ -34,7 +34,7 @@
         \begin{figure*}[!t]
             \centering
             \includegraphics[width=\textwidth,height=0.34\textheight,keepaspectratio]{net-pipeline.pdf}
-            \caption{前馈高斯回归网络结构图。}
+            \caption{上下文感知前馈高斯回归器结构。网络首先在滑动窗口内对有效候选种子构造逐点对齐的上下文，并通过冻结的共享主干提取当前帧与历史帧的图像-渲染特征；随后，跨注意力模块汇聚多视图外观信息，并与逆深度、DA3 法线和位置编码等几何先验一起输入残差 MLP 编码器；最后，多头约束解码器预测完整的 2DGS surfel 属性 $(\mu, s, \alpha, c, q)$，其中法线引导的旋转分支通过 Gram-Schmidt 正交化构造几何一致的朝向。}
             \label{fig:net_pipeline}
         \end{figure*}
     }%
