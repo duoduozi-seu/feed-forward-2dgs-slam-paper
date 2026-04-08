@@ -29,4 +29,21 @@
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.2}尺度-旋转歧义消解}{7}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.5.3}训练目标}{7}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.6}在线优化}{7}{}\protected@file@percent }
-\gdef \@abspage@last{7}
+\@writefile{toc}{\contentsline {section}{\numberline {4}实验结果}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}实验设置}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}与现有方法的对比}{7}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces 公开 R3LIVE（Avia）数据集上序列内新视角 RGB 渲染结果对比。评价格式为 PSNR$\uparrow $ / SSIM$\uparrow $ / LPIPS$\downarrow $。}}{8}{}\protected@file@percent }
+\newlabel{tab:r3live_rendering}{{1}{8}{}{table.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}消融实验：前馈回归器的作用}{8}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces 前馈回归器消融实验结果（\texttt  {hku\_campus\_00}）。前两行是整段序列的最终新视角结果；后四行统计了代表帧 $\{4,84,609,784\}$ 在不同优化次数下的平均指标。}}{8}{}\protected@file@percent }
+\newlabel{tab:ablation_regressor}{{2}{8}{}{table.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces R3LIVE 数据集上的定性对比结果。第一行为 \texttt  {hku\_campus\_00} 序列第 690 帧，第二行为 \texttt  {degenerate\_seq\_00} 序列第 516 帧。相较于 MonoGS 与 Gaussian-LIC-2，本文方法在地面纹理、柱体边界以及高亮区域附近保留了更清晰的结构，同时显著减轻了模糊、拖影与局部崩塌现象。}}{9}{}\protected@file@percent }
+\newlabel{fig:qualitative_compare}{{3}{9}{}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}结果分析}{9}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces 前馈回归器消融的收敛曲线对比。图中展示了代表帧 \texttt  {4}、\texttt  {84}、\texttt  {609} 和 \texttt  {784} 在不同优化次数下的 PSNR、SSIM 与 LPIPS 变化趋势。总体上，加入回归器后能够在更少的优化轮数下达到更高或更稳定的渲染质量，尤其在早期阶段更为明显。}}{10}{}\protected@file@percent }
+\newlabel{fig:ablation_curves}{{4}{10}{}{figure.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces 前馈回归器消融的可视化结果（I）。展示 \texttt  {hku\_campus\_00} 中代表帧 \texttt  {train\_0004} 与 \texttt  {train\_0084} 在 0、4、8 次优化后的渲染结果。对于每个代表帧，上两行为不使用回归器的 Baseline 和加入回归器后的 Ours。可以看到，回归器在零优化时已经给出了更具场景结构的初始化，并在早期优化阶段更快恢复出稳定外观。}}{11}{}\protected@file@percent }
+\newlabel{fig:ablation_visual_1}{{5}{11}{}{figure.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces 前馈回归器消融的可视化结果（II）。展示代表帧 \texttt  {train\_0609} 与 \texttt  {train\_0784} 在不同优化次数下的对比结果。与图~\ref {fig:ablation_visual_1} 一致，加入回归器后，系统通常能够从更合理的初始高斯状态出发，并在较少优化轮数下获得更清晰、更稳定的渲染。}}{12}{}\protected@file@percent }
+\newlabel{fig:ablation_visual_2}{{6}{12}{}{figure.6}{}}
+\gdef \@abspage@last{12}
