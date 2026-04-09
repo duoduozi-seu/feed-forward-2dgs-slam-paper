@@ -25,7 +25,7 @@
 \begin{figure*}[!t]
     \centering
     \includegraphics[width=\textwidth,height=0.32\textheight,keepaspectratio]{system-pipeline.pdf}
-    \caption{系统整体流程。(A) 外部 LiDAR-惯导-视觉前端提供同步的 RGB 图像、LiDAR 观测、IMU 信息和相机位姿。(B) 系统利用 SPNet 深度补全和 DA3 法线估计生成稠密几何先验，并与 LiDAR 点共同形成欠重建区域的候选种子。(C) 对于每个候选点，前馈高斯回归器聚合逐点对齐的多视图上下文，直接预测完整的 2DGS surfel 属性。(D) 预测得到的新 surfel 被插入增量地图后，再结合在线优化进一步更新；同时，当前地图的渲染结果继续作为后续插点的上下文输入。}
+    \caption{系统整体流程。(A) 外部 LiDAR-惯导-视觉前端提供同步的 RGB 图像、LiDAR 观测、IMU 信息和相机位姿。(B) 系统利用 SPNet 深度补全和 DA3 法线估计生成稠密几何先验，并与 LiDAR 点共同形成欠重建区域的初始点。(C) 对于每个候选点，前馈高斯回归器聚合逐点对齐的多视图上下文，直接预测完整的 2DGS surfel 属性。(D) 预测得到的新 surfel 被插入增量地图后，再结合在线优化进一步更新；同时，当前地图的渲染结果继续作为后续插点的上下文输入。}
     \label{fig:system_pipeline}
 \end{figure*}
 
