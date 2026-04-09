@@ -1,2 +1,8 @@
-
+.DS_Store
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.xdv
 main.log
+intro-related_works-method-tex/main.pdf
