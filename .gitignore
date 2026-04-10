@@ -5,3 +5,4 @@
 *.log
 *.xdv
 main.log
+.DS_Store
