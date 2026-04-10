@@ -12,7 +12,7 @@
 
 当新关键帧到达时，系统首先将稀疏 LiDAR 点投影到图像平面形成稀疏深度图，经 SPNet 深度补全后在 LiDAR 盲区生成补充初始 3D 点；与此同时，DA3 单目深度估计模型预测稠密深度并与 LiDAR 对齐，由此为初始点提供法线先验。在初始点生成后，系统对当前高斯地图进行渲染，依据渲染透明度和颜色误差识别欠重建区域，并结合颜色梯度过滤与体素下采样，从中筛选出确需新增高斯的候选点子集。筛选后的候选点及其几何先验送入前馈回归网络，该网络利用共享 backbone 提取的当前帧与历史帧的原始与渲染图像特征，通过跨注意力机制融合多视角上下文，在单次前向传播中直接回归每个候选点的完整 surfel 属性。预测的新高斯插入地图后，系统在滑窗内的关键帧上进行多轮在线优化，以光度损失（L1 + SSIM）与 2DGS 几何约束损失（深度畸变 + 法线一致性）联合驱动高斯属性收敛。非关键帧仅接收位姿而不触发地图扩展。
 
-前馈回归网络的训练通过自蒸馏闭环完成。系统首先以 \texttt{naive} 模式（不使用前馈网络，采用传统的基于规则初始化）在目标场景上运行一遍完整的增量式建图，收集经在线优化和离线精细化后的高斯属性作为伪真值，回溯构造训练样本，离线训练前馈网络后重新部署。
+前馈回归网络的训练通过自蒸馏闭环完成。系统首先以 \texttt{naive} 模式（不使用前馈网络，采用传统的基于规则初始化）在训练场景上运行一遍完整的增量式建图；当某帧新增高斯的累积训练次数达到预设阈值后，系统快照其当前属性，并在该时刻构造对应的逐点上下文与几何先验，形成训练样本，随后离线训练前馈网络。
 
 \subsection{2DGS 表示}
 
@@ -42,7 +42,15 @@
 
 \subsection{前馈高斯回归网络}
 
-本节详细描述前馈网络的架构设计。该网络以候选点及其上游几何先验为输入，在单次前向传播中预测完整的 2DGS surfel 属性。
+本节详细描述前馈网络的架构设计。与 MVSplat 一类直接从多视图图像恢复高斯参数的方法不同，本文关注的是在候选点已经由上游几何模块确定的条件下，学习从逐点上下文表征与局部几何先验到 surfel 参数的映射。对于当前关键帧筛选得到的 $N_t$ 个候选点，记 $\mathbf{ctx}_i$ 为点 $i$ 的融合后的上下文特征，$\mathbf{g}_i$ 为其几何先验向量，则前馈网络的目标可写为：
+
+\begin{equation}
+f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
+\mapsto
+\{(\mathbf{s}_i, \mathbf{q}_i, \alpha_i, \mathbf{c}_i^{\mathrm{dc}}, \mathbf{c}_i^{\mathrm{rest}})\}_{i=1}^{N_t},
+\end{equation}
+
+其中输出分别对应 surfel 的二维尺度、旋转、不透明度以及 SH 颜色参数。下面分别说明 $\mathbf{ctx}_i$ 与 $\mathbf{g}_i$ 的构造方式，以及它们如何被编码并解码为最终高斯属性。
 
 \subsubsection{逐点上下文构造}
 
@@ -56,21 +64,37 @@
 
 \subsubsection{跨注意力时序上下文融合}
 
-为将 $W$ 帧历史上下文聚合为固定维度的上下文向量，系统采用单头跨注意力模块。查询向量 $\mathbf{q}_i$ 由当前帧的观察方向、图像特征和渲染特征拼接后经线性投影得到；键和值向量 $\mathbf{k}_{i,k}$、$\mathbf{v}_{i,k}$ 则由对应历史帧的同类信息构造。上下文向量通过带可见性掩码的缩放点积注意力计算：
+为将 $W$ 帧历史上下文聚合为固定维度的时序上下文向量，系统采用单头跨注意力模块。查询向量 $\mathbf{q}_i$ 由当前帧的观察方向、图像特征和渲染特征拼接后经线性投影得到；键和值向量 $\mathbf{k}_{i,k}$、$\mathbf{v}_{i,k}$ 则由对应历史帧的同类信息构造。时序上下文通过带可见性掩码的缩放点积注意力计算：
 
 \begin{equation}
-\mathbf{ctx}_i = \text{softmax}\!\left(\frac{\mathbf{q}_i \mathbf{K}_i^\top}{\sqrt{d_k}} + \mathbf{M}_i\right) \mathbf{V}_i
+\mathbf{ctx}_i^{\text{attn}} = \text{softmax}\!\left(\frac{\mathbf{q}_i \mathbf{K}_i^\top}{\sqrt{d_k}} + \mathbf{M}_i\right) \mathbf{V}_i
 \end{equation}
 
 其中 $d_k = 64$，$\mathbf{M}_i$ 将不可见帧的对应位置填充为 $-\infty$ 以完全排除其贡献。该设计的关键在于：观察方向显式参与查询和键的投影，使注意力权重能隐式编码视差关系，接近当前视角的历史帧自然获得更高权重。键和值共享相同的历史帧输入，使历史信息同时参与匹配和内容聚合。
 
-\subsubsection{几何感知编码器}
+\subsubsection{几何输入编码与多头预测解码}
 
-跨注意力输出的上下文向量 $\mathbf{ctx}_i$ 与当前帧图像/渲染特征、逆深度 $\bar{z}_i^{-1}$、DA3 相机空间法线 $\mathbf{n}_i^{\text{cam}}$、有效性掩码 $m_i$ 和 KNN 像素间距 $d_i^{\text{nn}}$ 拼接后送入残差 MLP 编码器。其中逆深度、法线和像素间距均经 NeRF 风格的位置编码（频带数分别为 4、2、3），拼接后输入总维度为 544。编码器由一层 $544 \to 512$ 线性投影和 4 个 pre-activation 残差块组成，输出 512 维特征 $\mathbf{h}_i$。
+在得到时序上下文后，系统将当前帧原始/渲染特征与其拼接，形成点 $i$ 的上下文表征
+\begin{equation}
+\mathbf{ctx}_i = [\mathbf{f}_i^{\text{curr}} \| \mathbf{f}_i^{\text{ren}} \| \mathbf{ctx}_i^{\text{attn}}],
+\end{equation}
+并将逆深度、DA3 相机空间法线、有效性掩码和 KNN 像素间距拼接为几何先验向量
+\begin{equation}
+\mathbf{g}_i = [\bar{z}_i^{-1} \| \mathbf{n}_i^{\text{cam}} \| m_i \| d_i^{\text{nn}}].
+\end{equation}
 
-\subsubsection{多头预测与几何约束解码}
+在进入 MLP 编码器之前，逆深度、法线和像素间距分别经过 NeRF 风格的位置编码（频带数分别为 4、2、3），而掩码 $m_i$ 保持原值。位置编码函数写为 $\gamma(v) = [v, \sin(2^0 \pi v), \cos(2^0 \pi v), \ldots, \sin(2^{L-1} \pi v), \cos(2^{L-1} \pi v)]$。记编码后的几何输入为
+\begin{equation}
+\tilde{\mathbf{g}}_i =
+[\gamma(\bar{z}_i^{-1}) \| \gamma(\mathbf{n}_i^{\text{cam}}) \| m_i \| \gamma(\log d_i^{\text{nn}})].
+\end{equation}
 
-编码器输出的 512 维特征向量分支到多个独立预测头。每个头具有 $\text{Linear} \to \text{ReLU} \to \text{Linear}$ 结构。关键设计在于：各头的输出不直接作为最终高斯参数，而是经过几何约束解码，将网络预测锚定在上游几何先验上。
+最终网络输入写为
+\begin{equation}
+\mathbf{x}_i = [\mathbf{ctx}_i \| \tilde{\mathbf{g}}_i].
+\end{equation}
+
+编码器由一层 $544 \to 512$ 线性投影和 4 个 pre-activation 残差块组成，输出 512 维特征 $\mathbf{h}_i$。在此基础上，多个独立预测头以 $\text{Linear} \to \text{ReLU} \to \text{Linear}$ 的形式回归不同属性；各头的输出并不直接作为最终高斯参数，而是经过几何约束解码，将网络预测锚定在上游几何先验上。
 
 \paragraph{(a) 法线引导的旋转构造}
 
@@ -100,7 +124,7 @@
 
 其中 $d_i^{\text{nn}}$ 为候选点的 KNN 像素间距。最终世界空间尺度通过 $\mathbf{s}_i^{\text{world}} = \mathbf{s}_i^{\text{pixel}} / (\bar{z}_i^{-1} \cdot f)$ 转换。这一参数化使网络无需学习深度依赖的绝对尺度，而只需学习与局部密度相关的相对尺度。
 
-\paragraph{(c) 颜色组装}
+\paragraph{(c) 颜色}
 
 DC 颜色头输出残差 $\Delta \mathbf{c}_i^{\text{dc}}$，加到由单帧 RGB 观测转换的基础 SH 先验上得到 $\mathbf{c}_i^{\text{dc}} = \text{RGB2SH}(\mathbf{I}_i) + \Delta \mathbf{c}_i^{\text{dc}}$；高阶 SH 系数由独立头直接预测。这种残差设计使网络从合理的颜色先验出发，仅需学习修正量。
 
@@ -114,9 +138,9 @@ DC 颜色头输出残差 $\Delta \mathbf{c}_i^{\text{dc}}$，加到由单帧 RGB
 
 \subsubsection{在线数据采集}
 
-系统首先以 \texttt{naive} 模式（不使用前馈网络，采用传统的基于规则初始化）在目标场景上运行一次完整的增量式建图。运行过程中，每当某帧新增的高斯累积训练达到指定次数后，系统快照当前高斯属性作为中间伪真值；运行结束后再进行离线精细化（继续优化至收敛），得到最终高斯属性。随后，系统回溯每个关键帧，以因果正确的方式重新构造上下文特征：对每帧，仅使用该帧加入之前已存在的高斯进行渲染（不泄露未来信息），提取 backbone 特征并完成逐点上下文构造。
+系统首先以 \texttt{naive} 模式（不使用前馈网络，而采用基于规则的初始化）在训练场景上运行一次完整的增量式建图。运行过程中，当某帧新增高斯的累积训练次数达到预设阈值时，系统快照这些高斯在该时刻的属性作为监督信号；与此同时，将它们投影到当前滑动窗口中，按照前文定义构造对应的上下文表征 $\mathbf{ctx}_i$ 与几何先验向量 $\mathbf{g}_i$。
 
-采集产物以高斯为核心单位组织：每个训练样本对应一个高斯 seed，包含其上下文特征向量（当前帧与历史帧的原始及渲染特征、观察方向、可见性掩码、逆深度、法线等共 15 类张量）作为输入，以及收敛后的高斯属性（尺度、旋转、不透明度、SH 颜色）作为标签。
+因此，采集产物以高斯为核心单位组织，每个训练样本都可直接写成前文定义的输入输出对 $(\mathbf{ctx}_i, \mathbf{g}_i) \mapsto (\mathbf{s}_i, \mathbf{q}_i, \alpha_i, \mathbf{c}_i^{\mathrm{dc}}, \mathbf{c}_i^{\mathrm{rest}})$。
 
 \subsubsection{尺度-旋转歧义消解}
 
@@ -126,8 +150,4 @@ DC 颜色头输出残差 $\Delta \mathbf{c}_i^{\text{dc}}$，加到由单帧 RGB
 
 \subsubsection{训练目标}
 
-网络以多任务损失联合训练，涵盖尺度、旋转、颜色和不透明度全部预测属性。尺度损失在 log 世界尺度空间以 L1 距离度量；旋转损失采用四元数余弦距离 $\mathcal{L}_{\text{rot}} = 1 - |\langle \mathbf{q}_{\text{pred}}, \mathbf{q}_{\text{gt}} \rangle|$；颜色损失对 DC 和高阶 SH 系数分别以 MSE 监督；不透明度损失为 L1 距离。训练采用 Adam 优化器，batch size 为 8192（逐点级），配合梯度裁剪。
-
-\subsection{在线优化}
-
-前馈网络预测的新高斯属性作为初始值插入地图后，仍需经过在线优化进一步收敛。优化以多视角光度损失（L1 与 SSIM 的加权组合）和 2DGS 几何约束损失（深度畸变 + 法线一致性）联合驱动。系统采用多优先级的训练视图选择策略：最新滑窗关键帧具有最高优先级，其次为高损失帧，其余帧通过随机采样补充。优化器采用 \texttt{SparseGaussianAdam}，每次仅更新当前渲染视图下可见的高斯子集，以提升大规模地图的优化效率。
+网络以多任务损失联合训练，涵盖尺度、旋转、颜色和不透明度全部预测属性。尺度损失在 log 世界尺度空间以 L1 距离度量；旋转损失采用四元数余弦距离 $\mathcal{L}_{\text{rot}} = 1 - |\langle \mathbf{q}_{\text{pred}}, \mathbf{q}_{\text{gt}} \rangle|$；颜色损失对 DC 和高阶 SH 系数分别以 MSE 监督；不透明度损失为 L1 距离。
