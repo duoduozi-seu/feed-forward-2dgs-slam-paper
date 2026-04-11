@@ -5,5 +5,6 @@
 *.log
 *.xdv
 main.log
+.DS_Store
 images/self_compare/baseline/train_*/metrics_history.csv
 images/self_compare/ours/train_*/metrics_history.csv
