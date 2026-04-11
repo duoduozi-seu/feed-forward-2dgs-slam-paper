@@ -5,3 +5,5 @@
 *.log
 *.xdv
 main.log
+images/self_compare/baseline/train_*/metrics_history.csv
+images/self_compare/ours/train_*/metrics_history.csv

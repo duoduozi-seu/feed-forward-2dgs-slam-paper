@@ -46,43 +46,41 @@
 
 \subsection{消融实验：前馈回归器的作用}
 
-为验证前馈回归器对增量式 2DGS 建图的贡献，我们在 \texttt{hku\_campus\_00} 序列上进行了消融实验。这里将“不使用回归器、直接采用基于规则初始化”的系统记为 \textbf{Baseline}，将“加入上下文感知前馈回归器”的系统记为 \textbf{Ours}。消融重点考察两个问题：1）回归器是否能提升最终建图质量；2）回归器是否能加快新插入高斯的收敛速度。
+为验证前馈回归器对增量式 2DGS 建图的贡献，我们在 \texttt{hku\_campus\_00} 序列上进行了消融实验。这里将“不使用回归器、直接采用基于规则初始化”的系统记为 \textbf{Baseline}，将“加入上下文感知前馈回归器”的系统记为 \textbf{Ours}。与仅挑选少量代表帧做数值比较不同，这里对全部训练帧的优化轨迹进行统计，并以高斯插入后的局部优化次数（\texttt{train\_times}）作为横轴，从三个角度评估回归器的作用：1）在固定优化预算下的早期质量；2）前 16 轮内的整体收敛收益；3）达到给定质量阈值所需的优化轮数。
 
 \begin{table}[t]
 \centering
-\caption{前馈回归器消融实验结果（\texttt{hku\_campus\_00}）。前两行是整段序列的最终新视角结果；后四行统计了代表帧 $\{4,84,609,784\}$ 在不同优化次数下的平均指标。}
+\caption{前馈回归器消融实验结果（\texttt{hku\_campus\_00}）。统计基于全部训练帧的优化轨迹：前两行给出 16 轮优化时的 mean $\pm$ std；中两行为前 16 轮的 AUC；后两行为达到指定质量阈值所需优化轮数的 mean $\pm$ std，括号中给出成功达到阈值的帧数。}
 \label{tab:ablation_regressor}
 \renewcommand{\arraystretch}{1.18}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{|l|c|c|c|}
 \hline
 \textbf{设置} & \textbf{PSNR$\uparrow$} & \textbf{SSIM$\uparrow$} & \textbf{LPIPS$\downarrow$} \\ \hline
-Baseline（最终） & 25.44 & 0.818 & 0.157 \\ \hline
-Ours（最终） & \textbf{25.52} & \textbf{0.820} & \textbf{0.152} \\ \hline
-Baseline（4 次优化，4 帧平均） & 19.79 & 0.658 & 0.366 \\ \hline
-Ours（4 次优化，4 帧平均） & \textbf{21.26} & \textbf{0.745} & \textbf{0.324} \\ \hline
-Baseline（8 次优化，4 帧平均） & 22.31 & 0.780 & 0.260 \\ \hline
-Ours（8 次优化，4 帧平均） & \textbf{23.21} & \textbf{0.801} & \textbf{0.246} \\ \hline
+Baseline（16 轮） & 23.97 $\pm$ 2.91 & 0.800 $\pm$ 0.071 & 0.213 $\pm$ 0.055 \\ \hline
+Ours（16 轮） & \textbf{24.34 $\pm$ 2.74} & \textbf{0.813 $\pm$ 0.063} & \textbf{0.195 $\pm$ 0.048} \\ \hline
+Baseline（AUC@16） & 362.96 $\pm$ 44.54 & 12.251 $\pm$ 1.302 & 4.266 $\pm$ 0.978 \\ \hline
+Ours（AUC@16） & \textbf{370.57 $\pm$ 40.43} & \textbf{12.475 $\pm$ 1.149} & \textbf{4.033 $\pm$ 0.866} \\ \hline
+Baseline（time-to-quality） & 20.4 $\pm$ 28.1 (255/391) & 3.2 $\pm$ 6.2 (373/391) & 27.0 $\pm$ 24.5 (257/391) \\ \hline
+Ours（time-to-quality） & \textbf{17.7 $\pm$ 26.0 (281/391)} & \textbf{3.1 $\pm$ 10.2 (382/391)} & \textbf{19.6 $\pm$ 15.6 (323/391)} \\ \hline
 \end{tabular}%
 }
 \end{table}
 
-表~\ref{tab:ablation_regressor} 表明，引入前馈回归器后，最终整段序列的渲染质量取得了稳定提升，其中 PSNR 从 25.44 提升到 25.52，SSIM 从 0.818 提升到 0.820，LPIPS 从 0.157 降低到 0.152。更重要的是，回归器显著改善了新高斯插入后的\textbf{早期收敛质量}：在 4 个代表帧上，经过仅 4 次优化时，平均 PSNR 提升 \textbf{1.48 dB}、SSIM 提升 \textbf{0.087}、LPIPS 降低 \textbf{0.042}；经过 8 次优化时，仍可带来 \textbf{0.90 dB} 的 PSNR 提升和更优的感知质量。这说明本文方法的优势不仅体现在最终上限，更体现在能够为新插入高斯提供更高质量的初始属性，从而减轻后续在线优化的负担。
+表~\ref{tab:ablation_regressor} 表明，引入前馈回归器后，训练帧上的整体早期收敛行为得到稳定改善。首先，在固定的 16 轮局部优化预算下，Ours 在三个指标上均优于 Baseline：PSNR 从 23.97 $\pm$ 2.91 提升到 24.34 $\pm$ 2.74，SSIM 从 0.800 $\pm$ 0.071 提升到 0.813 $\pm$ 0.063，同时 LPIPS 从 0.213 $\pm$ 0.055 降至 0.195 $\pm$ 0.048。由于这部分统计仅针对至少完成 16 轮局部优化的训练帧，因此更直接反映了新插入高斯在固定早期预算下的平均质量。
+
+其次，从前 16 轮的 AUC 统计来看，Ours 在三个指标上均表现更优：PSNR AUC 从 362.96 $\pm$ 44.54 提升到 370.57 $\pm$ 40.43，SSIM AUC 从 12.251 $\pm$ 1.302 提升到 12.475 $\pm$ 1.149，同时 LPIPS AUC 从 4.266 $\pm$ 0.978 降至 4.033 $\pm$ 0.866。由于 AUC 综合衡量了整个早期优化阶段的累计渲染质量，这说明本文方法的优势并非仅体现在某一个采样轮次，而是体现在更稳定的整体收敛收益上。
+
+进一步地，我们采用固定质量阈值评估两种方法达到“可用质量”所需的局部优化轮数，其中 PSNR、SSIM 和 LPIPS 的阈值分别设为 25.0、0.70 和 0.18。结果表明，Ours 在三个指标上都能以更少的平均优化轮数达到目标质量：对应数值分别由 20.4 $\pm$ 28.1、3.2 $\pm$ 6.2 和 27.0 $\pm$ 24.5 降至 17.7 $\pm$ 26.0、3.1 $\pm$ 10.2 和 19.6 $\pm$ 15.6。与此同时，Ours 在三个阈值下的成功覆盖帧数也均高于 Baseline，分别达到 281/391、382/391 和 323/391，而 Baseline 对应为 255/391、373/391 和 257/391。这说明前馈回归器不仅提高了平均早期质量，也提升了更多训练帧在有限局部优化预算内达到目标质量的概率。
 
 \begin{figure*}[t]
 \centering
-\setlength{\tabcolsep}{2pt}
-\begin{tabular}{cc}
-\includegraphics[width=0.48\textwidth]{../images/self_compare/train_times_eval_graph/train_0004_compare.png} &
-\includegraphics[width=0.48\textwidth]{../images/self_compare/train_times_eval_graph/train_0084_compare.png} \\
-\includegraphics[width=0.48\textwidth]{../images/self_compare/train_times_eval_graph/train_0609_compare.png} &
-\includegraphics[width=0.48\textwidth]{../images/self_compare/train_times_eval_graph/train_0784_compare.png} \\
-\end{tabular}
-\caption{前馈回归器消融的收敛曲线对比。图中展示了代表帧 \texttt{4}、\texttt{84}、\texttt{609} 和 \texttt{784} 在不同优化次数下的 PSNR、SSIM 与 LPIPS 变化趋势。总体上，加入回归器后能够在更少的优化轮数下达到更高或更稳定的渲染质量，尤其在早期阶段更为明显。}
+\includegraphics[width=0.92\textwidth]{../analysis_outputs/self_compare-3/convergence_curves_by_train_times.png}
+\caption{前馈回归器消融的全体训练帧收敛曲线。图中以局部优化次数 \texttt{train\_times} 为横轴，分别给出了 Baseline 与 Ours 在全部训练帧上的 PSNR、SSIM 与 LPIPS 平均收敛趋势，并用阴影带表示标准差范围。可以看到，加入前馈回归器后，系统在早期阶段整体表现出更高的渲染质量和更稳定的收敛行为。}
 \label{fig:ablation_curves}
 \end{figure*}
 
-图~\ref{fig:ablation_curves} 进一步给出了不同代表帧随优化次数变化的指标曲线。可以看到，加入回归器后，曲线在训练早期普遍具有更好的起点，并更快进入稳定区间。尽管个别帧在单一指标上会出现局部波动，但从 SSIM 与 LPIPS 的整体趋势来看，回归器提供了更稳定的结构恢复和更低的感知误差，这说明了我们的回归器学习到了naive系统风格的高斯数据特性，提供了高质量的初始化高斯。
+图~\ref{fig:ablation_curves} 进一步从全体训练帧的角度展示了两种方法的平均收敛趋势。可以看到，Ours 在前若干轮局部优化阶段就表现出更高的 PSNR 与 SSIM 以及更低的 LPIPS，且曲线波动整体更小。这与表~\ref{tab:ablation_regressor} 中的定量结果是一致的，说明前馈回归器带来的收益并非局限于少量个例，而是体现在大多数训练帧共享的早期收敛过程中。
 
 \begin{figure*}[t]
 \centering
@@ -106,7 +104,7 @@ Ours（8 次优化，4 帧平均） & \textbf{23.21} & \textbf{0.801} & \textbf{
 \includegraphics[width=0.30\textwidth]{../images/self_compare/ours/train_0084/times_0004.jpg} &
 \includegraphics[width=0.30\textwidth]{../images/self_compare/ours/train_0084/times_0008.jpg} \\
 \end{tabular}
-\caption{前馈回归器消融的可视化结果（I）。展示 \texttt{hku\_campus\_00} 中代表帧 \texttt{train\_0004} 与 \texttt{train\_0084} 在 0、4、8 次优化后的渲染结果。对于每个代表帧，上两行为不使用回归器的 Baseline 和加入回归器后的 Ours。可以看到，回归器在零优化时已经给出了更具场景结构的初始化，并在早期优化阶段更快恢复出稳定外观。}
+\caption{前馈回归器消融的可视化结果（I）。展示 \texttt{hku\_campus\_00} 中代表帧 \texttt{train\_0004} 与 \texttt{train\_0084} 在 0、4、8 次局部优化后的渲染结果。对于每个代表帧，上两行为 Baseline，下两行为 Ours。该图主要用于展示典型区域的初始化差异及其早期优化过程。}
 \label{fig:ablation_visual_1}
 \end{figure*}
 
@@ -132,11 +130,11 @@ Ours（8 次优化，4 帧平均） & \textbf{23.21} & \textbf{0.801} & \textbf{
 \includegraphics[width=0.30\textwidth]{../images/self_compare/ours/train_0784/times_0004.jpg} &
 \includegraphics[width=0.30\textwidth]{../images/self_compare/ours/train_0784/times_0008.jpg} \\
 \end{tabular}
-\caption{前馈回归器消融的可视化结果（II）。展示代表帧 \texttt{train\_0609} 与 \texttt{train\_0784} 在不同优化次数下的对比结果。与图~\ref{fig:ablation_visual_1} 一致，加入回归器后，系统通常能够从更合理的初始高斯状态出发，并在较少优化轮数下获得更清晰、更稳定的渲染。}
+\caption{前馈回归器消融的可视化结果（II）。展示代表帧 \texttt{train\_0609} 与 \texttt{train\_0784} 在不同局部优化次数下的对比结果。与图~\ref{fig:ablation_visual_1} 一致，该图用于补充说明前馈初始化对后续早期收敛的影响。}
 \label{fig:ablation_visual_2}
 \end{figure*}
 
-图~\ref{fig:ablation_visual_1} 和图~\ref{fig:ablation_visual_2} 直观说明了回归器为何能够提升早期收敛速度。在不使用回归器时，初始插入的高斯参数主要由预定义规则确定，往往呈现出较强的离散性与无序性，因此需要依赖后续多轮优化逐步与场景对齐；而加入回归器后，即使在 0 次优化时，也已经可以观察到更为合理的场景布局和主体结构。进一步从这些代表帧的可视化结果来看，回归器对不同区域表现出较为明确的自适应倾向：在欠重建或覆盖不足的区域，预测结果通常对应更具覆盖性的高斯配置，从而有助于快速补全主体结构；而在已经形成较好几何支撑或细节较为丰富的区域，预测结果则更倾向于保留较细粒度的高斯分布，以避免过度覆盖细节。类似地，在弱纹理或大面积平滑区域，回归器往往给出尺度相对更大的高斯以提升早期覆盖效率；而在纹理变化更丰富、结构边界更密集的区域，预测高斯通常更小、更集中，从而更有利于细节表达。尽管这些现象仍主要来自定性观察，但它们与本文的设计目标是一致的，即根据局部上下文直接回归更适合当前区域状态的初始高斯属性。随着优化轮数增加，本文方法能够更快收敛到清晰、稳定的渲染结果。
+图~\ref{fig:ablation_visual_1} 和图~\ref{fig:ablation_visual_2} 给出了若干代表帧的可视化结果作为补充说明。可以看到，在不使用回归器时，初始插入的高斯参数主要由预定义规则给出，往往需要依赖后续多轮优化逐步与场景对齐；而加入回归器后，即使在 0 次局部优化时，也通常能够呈现出更合理的场景布局与主体结构，并在随后的少量优化中更快恢复出稳定外观。这些定性现象与表~\ref{tab:ablation_regressor} 及图~\ref{fig:ablation_curves} 的全局统计结论是一致的，即前馈回归器主要通过改善新高斯的初始状态来提升早期收敛质量。
 
 \subsection{结果分析}
 
