@@ -14,15 +14,15 @@
 
 所有实验均在统一硬件与软件环境下完成系统部署、网络训练以及新场景测试评估。实验平台采用 Ubuntu 20.04（Python 3.8）环境，基于 PyTorch 2.0.0 与 CUDA 11.8 实现。硬件配置为单张 RTX 4090D（24GB）GPU、16 vCPU Intel(R) Xeon(R) Platinum 8481C 处理器以及 80GB 系统内存。
 
-前馈回归网络的训练数据来自 R3LIVE 的 \texttt{hku\_campuse\_seq\_02}、\texttt{hku\_campuse\_seq\_03}、\texttt{hkust\_campuse\_seq\_02}、\texttt{hkust\_campuse\_seq\_03} 以及我们的自建数据集 \texttt{xx}。训练采用 Adam 优化器，batch size 设为 8192（逐点级），并配合梯度裁剪以保证训练稳定。学习率统一设置为 $5\times10^{-4}$，训练总计 150 个 epoch。损失项权重设置为 $\lambda_{\text{scale}}=1.0$、$\lambda_{\text{rot}}=1.0$、$\lambda_{\text{dc}}=1.0$、$\lambda_{\text{rest}}=0.1$、$\lambda_{\text{opac}}=1.0$；尺度恢复中使用的相机焦距参数固定为 $431.7103$。
+前馈回归网络的训练数据来自 R3LIVE 的 \texttt{hku\_campus\_seq\_02}、\texttt{hku\_campus\_seq\_03}、\texttt{hkust\_campus\_seq\_02}、\texttt{hkust\_campus\_seq\_03} 以及我们的自建数据集 \texttt{seu\_campus\_seq\_02}、\texttt{seu\_campus\_seq\_03}。训练采用 Adam 优化器，batch size 设为 8192（逐点级），并配合梯度裁剪以保证训练稳定。学习率统一设置为 $5\times10^{-4}$，训练总计 150 个 epoch。损失项权重设置为 $\lambda_{\text{scale}}=1.0$、$\lambda_{\text{rot}}=1.0$、$\lambda_{\text{dc}}=1.0$、$\lambda_{\text{rest}}=0.1$、$\lambda_{\text{opac}}=1.0$；尺度恢复中使用的相机焦距参数固定为 $431.7103$。
 
-对比方法包括 MonoGS、Co-SLAM、MM3DGS-SLAM、Gaussian-LIC 以及 Gaussian-LIC-2。需要说明的是，这部分实验主要研究高斯地图后端的表示与插入机制，因此关注点主要放在地图渲染质量与新高斯的收敛效率上。
+对比方法包括 MonoGS、Co-SLAM、MM3DGS-SLAM、Gaussian-LIC-2。需要说明的是，这部分实验主要研究高斯地图后端的表示与插入机制，因此关注点主要放在地图渲染质量与新高斯的收敛效率上。
 
 \subsection{与现有方法的对比}
 
 表~\ref{tab:r3live_rendering} 给出了 R3LIVE（Avia）与 MCD（OS1-64）数据集上的定量结果。对于 R3LIVE（Avia）部分，可以看到本文方法在全部 6 个测试序列上均取得了最优的渲染指标。与当前最接近的基线 Gaussian-LIC-2 相比，本文方法在这 6 个序列上的平均提升达到 \textbf{1.28 dB} PSNR、\textbf{0.041} SSIM，并将 LPIPS 平均降低 \textbf{0.030}。其中，在更具挑战性的 \texttt{hku\_campus\_01} 序列上，PSNR 提升达到 \textbf{2.63 dB}，说明所提出的上下文感知前馈插入策略在困难视角与退化区域中能够提供更可靠的新高斯初始化。对于 MCD（OS1-64）部分，本文方法在 3 个序列上的平均 PSNR 和 SSIM 相比 Gaussian-LIC-2 分别进一步提升约 \textbf{0.29 dB} 和 \textbf{0.007}，同时 LPIPS 略有下降，表明该方法在不同传感器配置与校园场景中同样具有稳定的泛化能力。
 
-从不同方法的表现来看，纯视觉的 MonoGS 在大尺度室外与退化场景中容易出现明显的模糊、漂浮和结构崩塌，这说明仅依赖后续优化来修正不准确初始化是十分困难的。引入 LiDAR 几何先验后，Gaussian-LIC 与 Gaussian-LIC-2 的整体结果已有明显提升，但其新高斯属性仍主要依赖规则设计，因而在高亮区域、边界区域和未充分观测区域中依然存在拖影、过度平滑或局部失真。相比之下，本文方法利用当前帧与历史帧的图像--渲染上下文，能够在插入时为 surfel 提供更接近收敛状态的属性初始化，因此在后续少量优化下即可获得更稳定的外观与更清晰的结构。
+从不同方法的表现来看，纯视觉的 MonoGS 在大尺度室外与退化场景中容易出现明显的模糊、漂浮和结构崩塌，这说明仅依赖后续优化来修正不准确初始化是十分困难的。引入 LiDAR 几何先验后，Gaussian-LIC-2 的整体结果已有明显提升，但其新高斯属性仍主要依赖规则设计，因而在高亮区域、边界区域和未充分观测区域中依然存在拖影、过度平滑或局部失真。相比之下，本文方法利用当前帧与历史帧的图像--渲染上下文，能够在插入时为 surfel 提供更接近收敛状态的属性初始化，因此在后续少量优化下即可获得更稳定的外观与更清晰的结构。
 
 \begin{figure*}[t]
 \centering
@@ -87,59 +87,7 @@ Ours（time-to-quality） & \textbf{17.7 $\pm$ 26.0 (281/391)} & \textbf{3.1 $\p
 
 从图~\ref{fig:ablation_curves} 可以进一步看出，Ours 在前若干轮局部优化阶段通常表现出更高的 PSNR 与 SSIM 以及更低的 LPIPS，且整体波动更小。这与表~\ref{tab:ablation_regressor} 中的定量结果是一致的，说明前馈回归器带来的收益能够在训练帧整体的早期优化过程中稳定体现出来。
 
-\begin{figure*}[t]
-\centering
-\setlength{\tabcolsep}{2pt}
-\begin{tabular}{cccc}
-& \small 0 次优化 & \small 4 次优化 & \small 8 次优化 \\
-\rotatebox{90}{Baseline} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0004/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0004/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0004/times_0008.jpg} \\
-\rotatebox{90}{Ours} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0004/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0004/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0004/times_0008.jpg} \\
-\rotatebox{90}{Baseline} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0084/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0084/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0084/times_0008.jpg} \\
-\rotatebox{90}{Ours} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0084/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0084/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0084/times_0008.jpg} \\
-\end{tabular}
-\caption{前馈回归器消融的可视化结果（I）。展示 \texttt{hku\_campus\_00} 中代表帧 \texttt{train\_0004} 与 \texttt{train\_0084} 在 0、4、8 次局部优化后的渲染结果。对于每个代表帧，上两行为 Baseline，下两行为 Ours。该图主要用于展示典型区域的初始化差异及其早期优化过程。}
-\label{fig:ablation_visual_1}
-\end{figure*}
-
-\begin{figure*}[t]
-\centering
-\setlength{\tabcolsep}{2pt}
-\begin{tabular}{cccc}
-& \small 0 次优化 & \small 4 次优化 & \small 8 次优化 \\
-\rotatebox{90}{Baseline} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0609/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0609/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0609/times_0008.jpg} \\
-\rotatebox{90}{Ours} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0609/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0609/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0609/times_0008.jpg} \\
-\rotatebox{90}{Baseline} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0784/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0784/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0784/times_0008.jpg} \\
-\rotatebox{90}{Ours} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0784/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0784/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0784/times_0008.jpg} \\
-\end{tabular}
-\caption{前馈回归器消融的可视化结果（II）。展示代表帧 \texttt{train\_0609} 与 \texttt{train\_0784} 在不同局部优化次数下的对比结果。与图~\ref{fig:ablation_visual_1} 一致，该图用于补充说明前馈初始化对后续早期收敛的影响。}
-\label{fig:ablation_visual_2}
-\end{figure*}
-
-图~\ref{fig:ablation_visual_1} 和图~\ref{fig:ablation_visual_2} 给出了若干代表帧的可视化结果作为补充说明。可以看到，在不使用回归器时，初始插入的高斯参数主要由预定义规则给出，往往需要依赖后续多轮优化逐步与场景对齐；而加入回归器后，即使在 0 次局部优化时，也通常能够呈现出更合理的场景布局与主体结构，并在随后的少量优化中更快恢复出稳定外观。这些定性现象与表~\ref{tab:ablation_regressor} 及图~\ref{fig:ablation_curves} 的全局统计结论是一致的，即前馈回归器主要通过改善新高斯的初始状态来提升早期收敛质量。
+图~\ref{fig:ablation_visual_1} 和图~\ref{fig:ablation_visual_2} 的完整可视化结果移至附录，以便正文集中呈现定量分析与早期收敛曲线。对应图中仍保留了代表帧的初始化差异与局部优化过程，便于进一步检查前馈回归器对新高斯初始状态的影响。
 
 \subsection{结果分析}
 
