@@ -1,0 +1,58 @@
+\documentclass[lettersize,journal]{IEEEtran}
+\usepackage{amsmath,amsfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{array}
+\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\usepackage{textcomp}
+\usepackage{stfloats}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage[UTF8,fontset=fandol]{ctex}
+\usepackage{cite}
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage{afterpage}
+\hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
+
+\begin{document}
+
+\title{GeoSurfel: Geometry-Guided Feed-Forward Regression for LiDAR-Inertial-Camera Photo-Realistic 2DGS Mapping}
+\author{}
+
+\maketitle
+
+% 摘要与正文都拆成独立子 tex，结构与当前主工程的 main.tex 保持一致。
+\input{00_abstract_section.tex}
+\input{01_intro_section.tex}
+
+% 这两张双栏流程图仍然放在引言之后，保持与当前主工程一致的版式节奏。
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{../../system-pipeline.pdf}
+    \caption{系统整体流程。(A) 外部 LiDAR-惯导-视觉前端提供同步的 RGB 图像、LiDAR 观测、IMU 信息和相机位姿。(B) 系统利用 SPNet 深度补全和 DA3 法线估计生成稠密几何先验，并与 LiDAR 点共同形成欠重建区域的初始点。(C) 对于每个候选点，前馈高斯回归器聚合逐点对齐的多视图上下文，直接预测完整的 2DGS surfel 属性。(D) 预测得到的新 surfel 被插入增量地图后，再结合在线优化进一步更新；同时，当前地图的渲染结果继续作为后续插点的上下文输入。}
+    \label{fig:system_pipeline}
+\end{figure*}
+
+% 网络结构图延后一页进入双栏浮动队列，尽量让它优先出现在后续页面顶部。
+\afterpage{%
+    \afterpage{%
+        \begin{figure*}[!t]
+            \centering
+            \includegraphics[width=\textwidth,height=0.34\textheight,keepaspectratio]{../../net-pipeline.pdf}
+            \caption{上下文感知前馈高斯回归器结构。网络首先在滑动窗口内对有效候选种子构造逐点对齐的上下文，并通过冻结的共享主干提取当前帧与历史帧的图像-渲染特征；随后，跨注意力模块汇聚多视图外观信息，并与逆深度、DA3 法线和位置编码等几何先验一起输入残差 MLP 编码器；最后，多头约束解码器预测完整的 2DGS surfel 属性 $(\mu, s, \alpha, c, q)$，其中法线引导的旋转分支通过 Gram-Schmidt 正交化构造几何一致的朝向。}
+            \label{fig:net-pipeline}
+        \end{figure*}
+    }%
+}
+
+\input{02_related_works_section.tex}
+\input{03_method_section.tex}
+\input{04_experiment_section.tex}
+\input{05_conclusion_section.tex}
+
+\appendix[前馈回归器消融可视化结果]
+\input{06_appendix_section.tex}
+
+\end{document}

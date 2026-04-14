@@ -1,0 +1,94 @@
+% 实验章节（中文版）
+% 说明：
+% 1. 本文件设计为被主文档 \input{} 进来使用。
+% 2. 需要主文档已加载 graphicx 宏包。
+% 3. 当前子工程的主 tex 位于更上层目录，因此实验图片路径需要回到 my_paper 下的 images/...。
+
+\section{实验结果}
+
+% 将双栏总表放回实验章节开头，使其优先出现在实验开始后的下一页顶部。
+\input{table.tex}
+
+\subsection{实验设置}
+我们主要从两方面验证所提方法的有效性：其一，在公开 R3LIVE（Avia）与 MCD（OS1-64）数据集上与现有增量式高斯建图方法进行定量与定性对比；其二，在 \texttt{hku\_campus\_00} 序列上对前馈回归器进行消融分析。对于新视角渲染质量，我们采用 PSNR、SSIM 和 LPIPS 作为评价指标，其中 PSNR 和 SSIM 越高越好，LPIPS 越低越好。除特别说明外，所有方法均在相同数据划分下进行评测，序列中的非训练帧用于序列内新视角评估。
+
+所有实验均在统一硬件与软件环境下完成系统部署、网络训练以及新场景测试评估。实验平台采用 Ubuntu 20.04（Python 3.8）环境，基于 PyTorch 2.0.0 与 CUDA 11.8 实现。硬件配置为单张 RTX 4090D（24GB）GPU、16 vCPU Intel(R) Xeon(R) Platinum 8481C 处理器以及 80GB 系统内存。
+
+前馈回归网络的训练数据来自 R3LIVE 的 \texttt{hku\_campus\_seq\_02}、\texttt{hku\_campus\_seq\_03}、\texttt{hkust\_campus\_seq\_02}、\texttt{hkust\_campus\_seq\_03} 以及我们的自建数据集 \texttt{seu\_campus\_seq\_02}、\texttt{seu\_campus\_seq\_03}。训练采用 Adam 优化器，batch size 设为 8192（逐点级），并配合梯度裁剪以保证训练稳定。学习率统一设置为 $5\times10^{-4}$，训练总计 150 个 epoch。损失项权重设置为 $\lambda_{\text{scale}}=1.0$、$\lambda_{\text{rot}}=1.0$、$\lambda_{\text{dc}}=1.0$、$\lambda_{\text{rest}}=0.1$、$\lambda_{\text{opac}}=1.0$；尺度恢复中使用的相机焦距参数固定为 $431.7103$。
+
+对比方法包括 MonoGS、Co-SLAM、MM3DGS-SLAM、Gaussian-LIC-2。需要说明的是，这部分实验主要研究高斯地图后端的表示与插入机制，因此关注点主要放在地图渲染质量与新高斯的收敛效率上。
+
+\subsection{与现有方法的对比}
+
+表~\ref{tab:r3live_rendering} 给出了 R3LIVE（Avia）与 MCD（OS1-64）数据集上的定量结果。对于 R3LIVE（Avia）部分，可以看到本文方法在全部 6 个测试序列上均取得了最优的渲染指标。与当前最接近的基线 Gaussian-LIC-2 相比，本文方法在这 6 个序列上的平均提升达到 \textbf{1.28 dB} PSNR、\textbf{0.041} SSIM，并将 LPIPS 平均降低 \textbf{0.030}。其中，在更具挑战性的 \texttt{hku\_campus\_01} 序列上，PSNR 提升达到 \textbf{2.63 dB}，说明所提出的上下文感知前馈插入策略在困难视角与退化区域中能够提供更可靠的新高斯初始化。对于 MCD（OS1-64）部分，本文方法在 3 个序列上的平均 PSNR 和 SSIM 相比 Gaussian-LIC-2 分别进一步提升约 \textbf{0.29 dB} 和 \textbf{0.007}，同时 LPIPS 略有下降，表明该方法在不同传感器配置与校园场景中同样具有稳定的泛化能力。
+
+从不同方法的表现来看，纯视觉的 MonoGS 在大尺度室外与退化场景中容易出现明显的模糊、漂浮和结构崩塌，这说明仅依赖后续优化来修正不准确初始化是十分困难的。引入 LiDAR 几何先验后，Gaussian-LIC-2 的整体结果已有明显提升，但其新高斯属性仍主要依赖规则设计，因而在高亮区域、边界区域和未充分观测区域中依然存在拖影、过度平滑或局部失真。相比之下，本文方法利用当前帧与历史帧的图像--渲染上下文，能够在插入时为 surfel 提供更接近收敛状态的属性初始化，因此在后续少量优化下即可获得更稳定的外观与更清晰的结构。
+
+\begin{figure*}[t]
+\centering
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{cccc}
+\small GT & \small MonoGS & \small Gaussian-LIC-2 & \small Ours \\
+\includegraphics[width=0.235\textwidth]{../../../images/compare-hku_campus_00/gt/test_0690.jpg} &
+\includegraphics[width=0.235\textwidth]{../../../images/compare-hku_campus_00/monogs/0690-test.jpg} &
+\includegraphics[width=0.235\textwidth]{../../../images/compare-hku_campus_00/gslic2/test_0690.jpg} &
+\includegraphics[width=0.235\textwidth]{../../../images/compare-hku_campus_00/ours/test_0690.jpg} \\
+\includegraphics[width=0.235\textwidth]{../../../images/compare-degenerate_00/gt/test_0516.jpg} &
+\includegraphics[width=0.235\textwidth]{../../../images/compare-degenerate_00/monogs/0516-test.jpg} &
+\includegraphics[width=0.235\textwidth]{../../../images/compare-degenerate_00/gslic2/test_0516.jpg} &
+\includegraphics[width=0.235\textwidth]{../../../images/compare-degenerate_00/ours/test_0516.jpg} \\
+\end{tabular}
+\caption{R3LIVE 数据集上的定性对比结果。第一行为 \texttt{hku\_campus\_00} 序列第 690 帧，第二行为 \texttt{degenerate\_seq\_00} 序列第 516 帧。相较于 MonoGS 与 Gaussian-LIC-2，本文方法在地面纹理、柱体边界以及高亮区域附近保留了更清晰的结构，同时显著减轻了模糊、拖影与局部崩塌现象。}
+\label{fig:qualitative_compare}
+\end{figure*}
+
+图~\ref{fig:qualitative_compare} 给出了两组具有代表性的定性结果。对于 \texttt{hku\_campus\_00} 中的室内外过渡场景，MonoGS 几乎无法恢复稳定结构，Gaussian-LIC-2 尽管已经重建出主要几何轮廓，但在强曝光出口附近以及右侧立柱区域仍存在明显模糊与边界发虚；相比之下，本文方法能够更好地保持地面砖块纹理和立柱轮廓。在 \texttt{degenerate\_seq\_00} 场景中，MonoGS 出现了大面积塌陷与错误颜色聚集，Gaussian-LIC-2 虽然恢复了主体结构，但在左下角高亮区域仍有较强拖影；本文方法在整体清晰度与局部一致性上进一步优于基线结果。
+
+\subsection{消融实验：前馈回归器的作用}
+
+为验证前馈回归器对增量式 2DGS 建图的贡献，我们在 \texttt{hku\_campus\_00} 序列上进行了消融实验。这里将“不使用回归器、直接采用基于规则初始化”的系统记为 \textbf{Baseline}，将“加入上下文感知前馈回归器”的系统记为 \textbf{Ours}。与仅挑选少量代表帧做数值比较不同，这里对全部训练帧的优化轨迹进行统计，并以高斯插入后的局部优化次数（\texttt{train\_times}）作为横轴，从三个角度评估回归器的作用：1）在固定优化预算下的早期质量；2）前 16 轮内的整体收敛收益；3）达到给定质量阈值所需的优化轮数。
+
+\begin{table}[!t]
+\centering
+\caption{前馈回归器消融实验结果（\texttt{hku\_campus\_00}）。统计基于全部训练帧的优化轨迹：前两行给出 16 轮优化时的 mean $\pm$ std；中两行为前 16 轮的 AUC；后两行为达到指定质量阈值所需优化轮数的 mean $\pm$ std，括号中给出成功达到阈值的帧数。}
+\label{tab:ablation_regressor}
+\renewcommand{\arraystretch}{1.18}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccc}
+\toprule
+\textbf{设置} & \textbf{PSNR$\uparrow$} & \textbf{SSIM$\uparrow$} & \textbf{LPIPS$\downarrow$} \\
+\midrule
+Baseline（16 轮） & 23.97 $\pm$ 2.91 & 0.800 $\pm$ 0.071 & 0.213 $\pm$ 0.055 \\
+Ours（16 轮） & \textbf{24.34 $\pm$ 2.74} & \textbf{0.813 $\pm$ 0.063} & \textbf{0.195 $\pm$ 0.048} \\
+\midrule
+Baseline（AUC@16） & 362.96 $\pm$ 44.54 & 12.251 $\pm$ 1.302 & 4.266 $\pm$ 0.978 \\
+Ours（AUC@16） & \textbf{370.57 $\pm$ 40.43} & \textbf{12.475 $\pm$ 1.149} & \textbf{4.033 $\pm$ 0.866} \\
+\midrule
+Baseline（time-to-quality） & 20.4 $\pm$ 28.1 (255/391) & 3.2 $\pm$ 6.2 (373/391) & 27.0 $\pm$ 24.5 (257/391) \\
+Ours（time-to-quality） & \textbf{17.7 $\pm$ 26.0 (281/391)} & \textbf{3.1 $\pm$ 10.2 (382/391)} & \textbf{19.6 $\pm$ 15.6 (323/391)} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+表~\ref{tab:ablation_regressor} 表明，引入前馈回归器后，训练帧上的整体早期收敛行为得到稳定改善。首先，在固定的 16 轮局部优化预算下，Ours 在三个指标上均优于 Baseline：PSNR 从 23.97 $\pm$ 2.91 提升到 24.34 $\pm$ 2.74，SSIM 从 0.800 $\pm$ 0.071 提升到 0.813 $\pm$ 0.063，同时 LPIPS 从 0.213 $\pm$ 0.055 降至 0.195 $\pm$ 0.048。由于这部分统计仅针对至少完成 16 轮局部优化的训练帧，因此更直接反映了新插入高斯在固定早期预算下的平均质量。
+
+其次，从前 16 轮的 AUC 统计来看，Ours 在三个指标上均表现更优：PSNR AUC 从 362.96 $\pm$ 44.54 提升到 370.57 $\pm$ 40.43，SSIM AUC 从 12.251 $\pm$ 1.302 提升到 12.475 $\pm$ 1.149，同时 LPIPS AUC 从 4.266 $\pm$ 0.978 降至 4.033 $\pm$ 0.866。由于 AUC 综合衡量了整个早期优化阶段的累计渲染质量，这说明本文方法的优势并非仅体现在某一个采样轮次，而是体现在更稳定的整体收敛收益上。
+
+进一步地，我们采用固定质量阈值评估两种方法达到“可用质量”所需的局部优化轮数，其中 PSNR、SSIM 和 LPIPS 的阈值分别设为 25.0、0.70 和 0.18。结果表明，Ours 在三个指标上都能以更少的平均优化轮数达到目标质量：对应数值分别由 20.4 $\pm$ 28.1、3.2 $\pm$ 6.2 和 27.0 $\pm$ 24.5 降至 17.7 $\pm$ 26.0、3.1 $\pm$ 10.2 和 19.6 $\pm$ 15.6。与此同时，Ours 在三个阈值下的成功覆盖帧数也均高于 Baseline，分别达到 281/391、382/391 和 323/391，而 Baseline 对应为 255/391、373/391 和 257/391。这说明前馈回归器不仅提高了平均早期质量，也提升了更多训练帧在有限局部优化预算内达到目标质量的概率。为更直观地展示这种早期阶段的稳定优势，图~\ref{fig:ablation_curves} 进一步汇总了插入后前 16 次局部优化内三项指标的均值收敛趋势。
+
+% 将原先占据整页的双栏图 4 替换为单栏紧凑版，紧跟表格分析之后作为桥接图。
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{../../../analysis_outputs/self_compare-3/figs/ablation_curves_paper_compact_demo.png}%有略缩图：ablation_curves_supplementary_demo.png 无略缩图ablation_curves_paper_compact_demo.png
+\caption{前馈回归器消融的早期收敛对比。图中从左到右分别给出了插入后前 16 次局部优化内的 PSNR、SSIM 和 LPIPS 均值曲线，用于补充展示 Baseline 与 Ours 在早期阶段的收敛差异。}
+\label{fig:ablation_curves}
+\end{figure}
+
+从图~\ref{fig:ablation_curves} 可以进一步看出，Ours 在前若干轮局部优化阶段通常表现出更高的 PSNR 与 SSIM 以及更低的 LPIPS，且整体波动更小。这与表~\ref{tab:ablation_regressor} 中的定量结果是一致的，说明前馈回归器带来的收益能够在训练帧整体的早期优化过程中稳定体现出来。
+
+图~\ref{fig:ablation_visual_1} 和图~\ref{fig:ablation_visual_2} 的完整可视化结果移至附录，以便正文集中呈现定量分析与早期收敛曲线。对应图中仍保留了代表帧的初始化差异与局部优化过程，便于进一步检查前馈回归器对新高斯初始状态的影响。
+
+\subsection{结果分析}
+
+综合上述实验可以得到两个结论。首先，在完整的新视角渲染评估中，本文方法在所有测试序列上均优于现有基线，说明 2DGS 表示与上下文感知前馈插入的结合能够稳定提升增量式高斯地图的渲染质量。其次，前馈回归器的核心价值并不只是带来略高的最终指标，更重要的是显著改善新高斯插入后的初始质量和早期收敛速度。这一点对于在线系统尤为关键，因为更好的初始高斯不仅能减少局部伪影，还能为后续帧提供更可靠的渲染监督，从而形成正向循环，持续提升整张地图的建图质量。

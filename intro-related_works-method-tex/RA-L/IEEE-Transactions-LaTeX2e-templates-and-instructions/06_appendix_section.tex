@@ -1,0 +1,57 @@
+% 附录章节
+% 说明：
+% 1. 本文件设计为被主文档 \input{} 进来使用。
+% 2. 这里专门放置正文中移出的图 5 和图 6，保持正文主体更紧凑。
+% 3. 标题由主文档中的 \appendix 统一控制，避免重复显示“附录”。
+
+\begin{figure*}[t]
+\centering
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{cccc}
+& \small 0 次优化 & \small 4 次优化 & \small 8 次优化 \\
+\rotatebox{90}{Baseline} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0004/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0004/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0004/times_0008.jpg} \\
+\rotatebox{90}{Ours} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0004/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0004/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0004/times_0008.jpg} \\
+\rotatebox{90}{Baseline} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0084/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0084/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0084/times_0008.jpg} \\
+\rotatebox{90}{Ours} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0084/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0084/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0084/times_0008.jpg} \\
+\end{tabular}
+\caption{前馈回归器消融的可视化结果（I）。展示 \texttt{hku\_campus\_00} 中代表帧 \texttt{train\_0004} 与 \texttt{train\_0084} 在 0、4、8 次局部优化后的渲染结果。对于每个代表帧，上两行为 Baseline，下两行为 Ours。}
+\label{fig:ablation_visual_1}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{cccc}
+& \small 0 次优化 & \small 4 次优化 & \small 8 次优化 \\
+\rotatebox{90}{Baseline} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0609/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0609/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0609/times_0008.jpg} \\
+\rotatebox{90}{Ours} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0609/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0609/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0609/times_0008.jpg} \\
+\rotatebox{90}{Baseline} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0784/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0784/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0784/times_0008.jpg} \\
+\rotatebox{90}{Ours} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0784/times_0000.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0784/times_0004.jpg} &
+\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0784/times_0008.jpg} \\
+\end{tabular}
+\caption{前馈回归器消融的可视化结果（II）。展示代表帧 \texttt{train\_0609} 与 \texttt{train\_0784} 在不同局部优化次数下的对比结果。与图~\ref{fig:ablation_visual_1} 一致，该图用于补充说明前馈初始化对后续早期收敛的影响。}
+\label{fig:ablation_visual_2}
+\end{figure*}
