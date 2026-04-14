@@ -295,15 +295,19 @@ Figure~\ref{fig:qualitative_compare} presents two representative qualitative res
 
 \begin{figure}[!t]
 \centering
-\setlength{\tabcolsep}{2pt}
-\begin{tabular}{ccccc}
-\small GT & \small MonoGS & \small MM3DGS-SLAM & \small Gaussian-LIC2 & \small Ours \\
-\includegraphics[width=0.19\columnwidth]{../../../images/compare-custom-2/gt/test_1080.png} &
-\includegraphics[width=0.19\columnwidth]{../../../images/compare-custom-2/monogs/test_1080.jpg} &
-\includegraphics[width=0.19\columnwidth]{../../../images/compare-custom-2/mm3dgs/test_1080.png} &
-\includegraphics[width=0.19\columnwidth]{../../../images/compare-custom-2/gslic2/test_1080.jpg} &
-\includegraphics[width=0.19\columnwidth]{../../../images/compare-custom-2/ours/test_1080.jpg} \\
+\begingroup
+% 单栏内并排 5 张图时，长方法名会撑宽 tabular；固定单元宽度并拆行，避免越过栏宽。
+\def\customqualwidth{0.19\columnwidth}
+\newcommand{\customquallabel}[1]{\parbox[c]{\customqualwidth}{\centering\scriptsize #1}}
+\begin{tabular}{@{}c@{\hspace{1pt}}c@{\hspace{1pt}}c@{\hspace{1pt}}c@{\hspace{1pt}}c@{}}
+\customquallabel{GT} & \customquallabel{MonoGS} & \customquallabel{MM3DGS-\\SLAM} & \customquallabel{Gaussian-\\LIC2} & \customquallabel{Ours} \\
+\includegraphics[width=\customqualwidth]{../../../images/compare-custom-2/gt/test_1080.png} &
+\includegraphics[width=\customqualwidth]{../../../images/compare-custom-2/monogs/test_1080.jpg} &
+\includegraphics[width=\customqualwidth]{../../../images/compare-custom-2/mm3dgs/test_1080.png} &
+\includegraphics[width=\customqualwidth]{../../../images/compare-custom-2/gslic2/test_1080.jpg} &
+\includegraphics[width=\customqualwidth]{../../../images/compare-custom-2/ours/test_1080.jpg} \\
 \end{tabular}
+\endgroup
 \caption{Qualitative comparison results on our self-collected campus dataset. The example shows frame \texttt{1080} from \texttt{seu\_campus\_seq\_01}. Compared with MonoGS, MM3DGS-SLAM, and Gaussian-LIC2, our method preserves clearer building contours, ground textures, and distant structures, while reducing blur and local distortion.}
 \label{fig:qualitative_compare_custom}
 \end{figure}
@@ -316,7 +320,7 @@ To verify the contribution of the feedforward regressor to incremental 2DGS mapp
 
 \begin{table}[!t]
 \centering
-\caption{Ablation results of the feedforward regressor (\texttt{hku\_campus\_00}). Statistics are based on the optimization trajectories of all training frames: the first two rows show mean $\pm$ std at 16 optimization rounds; the middle two rows show AUC over the first 16 rounds; and the last two rows show the mean $\pm$ std number of optimization rounds required to reach the specified quality thresholds, with the number of frames that reached the threshold shown in parentheses.}
+\caption{Feedforward regressor ablation on \texttt{hku\_campus\_00}.}
 \label{tab:ablation_regressor}
 \renewcommand{\arraystretch}{1.18}
 \resizebox{\columnwidth}{!}{%
@@ -365,10 +369,10 @@ For the problem that the initial quality of newly inserted Gaussians determines 
 Experiments on the R3LIVE, MCD, and self-collected campus datasets show that the proposed method can stably improve the novel-view rendering quality of incremental Gaussian maps, and achieves an average gain of 1.28\,dB PSNR on R3LIVE compared with the closest multisensor baseline. Ablation experiments further show that the main benefit of the method comes from improving the initial state and early convergence quality of new surfels, which is especially important for online mapping under a limited optimization budget. The current method still relies on an external stable front end, and future work will further explore incremental Gaussian mapping under weaker prior conditions.
 
 % \clearpage
-% \bibliographystyle{IEEEtran}
-% \bibliography{references}
+\bibliographystyle{IEEEtran}
+\bibliography{references}
 % \clearpage
-\appendix[Visualizations of Feedforward Regressor Ablation]
+% \appendix[Visualizations of Feedforward Regressor Ablation]
 % \clearpage
 
 \begin{figure*}[!b]
@@ -423,9 +427,9 @@ Experiments on the R3LIVE, MCD, and self-collected campus datasets show that the
 \label{fig:ablation_visual_2}
 \end{figure*}
 
-\clearpage
-\bibliographystyle{IEEEtran}
-\bibliography{references}
+% \clearpage
+% \bibliographystyle{IEEEtran}
+% \bibliography{references}
 % \clearpage
 
 \end{document}
