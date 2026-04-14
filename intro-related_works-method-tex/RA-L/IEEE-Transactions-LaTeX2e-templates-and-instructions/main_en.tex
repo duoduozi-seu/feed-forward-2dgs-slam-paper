@@ -18,14 +18,10 @@
 
 \title{Geometry-Guided Feed-Forward Regression for LiDAR-Inertial-Camera Photo-Realistic 2DGS Mapping}
 % 作者与单位信息按 IEEE 期刊模板的 \thanks 方式填写，保留模板原有排版风格。
-\author{Puwei Zhao$^{\dagger}$, Yiduo Zhou$^{\dagger}$, Yiming Fan$^{\dagger}$, Kun Qian$^{*}$, and Tong Shi%
+\author{Puwei Zhao$^{\dagger}$, Yiduo Zhou$^{\dagger}$, Yiming Fan$^{\dagger}$, Kun Qian$^{*}$,~\IEEEmembership{Member,~IEEE}, and Tong Shi%
 \thanks{$\dagger$ Puwei Zhao, Yiduo Zhou, and Yiming Fan contributed equally to this work.}%
 \thanks{$*$ Corresponding author: Kun Qian.}
-\thanks{Puwei Zhao is with the School of Automation, Southeast University, Nanjing, China (e-mail: 213233299@seu.edu.cn).}%
-\thanks{Yiduo Zhou is with the School of Automation, Southeast University, Nanjing, China (e-mail: 213233816@seu.edu.cn).}%
-\thanks{Yiming Fan is with the School of Automation, Southeast University, Nanjing, China (e-mail: 213233574@seu.edu.cn).}%
-\thanks{Tong Shi is with the School of Automation, Southeast University, Nanjing, China (e-mail: shitong@seu.edu.com).}%
-\thanks{Kun Qian is with the Southeast University Shenzhen Research Institute, Shenzhen, China, and also with the School of Automation, Southeast University, Nanjing, China (e-mail: kqian@seu.edu.cn).}%
+\thanks{Puwei Zhao, Yiduo Zhou, Yiming Fan, Kun Qian and Tong Shi are with the School of Automation, Southeast University, Nanjing, China (e-mail: kqian@seu.edu.cn).}%
 \thanks{This work is sponsored by Guangdong Basic and Applied Basic Research Foundation (No. 2025A1515010397), the Taihu Lake Innovation Fund for the School of Future Technology of Southeast University, and the 2025 Jiangsu College Students' Innovation and Entrepreneurship Training Program (NO. S202510286238)}}
 \maketitle
 
@@ -243,29 +239,29 @@ From the perspective of individual methods, the purely visual MonoGS~\cite{matsu
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{8pt}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccc}
 \toprule
-\textbf{Sequence} & \multicolumn{5}{c}{\textbf{Rendering Performance (PSNR$\uparrow$ SSIM$\uparrow$ LPIPS$\downarrow$)}} \\
-\cmidrule(lr){2-6}
-& \textbf{MonoGS} & \textbf{Co-SLAM} & \textbf{MM3DGS-SLAM} & \textbf{Gaussian-LIC2} & \textbf{Ours} \\
+\textbf{Sequence} & \multicolumn{4}{c}{\textbf{Rendering Performance (PSNR$\uparrow$ SSIM$\uparrow$ LPIPS$\downarrow$)}} \\
+\cmidrule(lr){2-5}
+& \textbf{MonoGS} & \textbf{MM3DGS-SLAM} & \textbf{Gaussian-LIC2} & \textbf{Ours} \\
 \midrule
 \rowcolor{black!8}
-\multicolumn{6}{l}{\textbf{R3LIVE (Avia)}} \\
-degenerate\_seq\_00 & 14.59 \textbar{} 0.460 \textbar{} 0.624 & 14.42 \textbar{} 0.286 \textbar{} 0.810 & 19.35 \textbar{} 0.698 \textbar{} 0.212 & 21.99 \textbar{} 0.782 \textbar{} 0.162 & \textbf{23.41} \textbar{} \textbf{0.821} \textbar{} \textbf{0.137} \\
-degenerate\_seq\_01 & 14.66 \textbar{} 0.438 \textbar{} 0.692 & 14.88 \textbar{} 0.267 \textbar{} 0.822 & 18.57 \textbar{} 0.621 \textbar{} 0.277 & 22.94 \textbar{} 0.790 \textbar{} 0.159 & \textbf{23.54} \textbar{} \textbf{0.810} \textbar{} \textbf{0.157} \\
-hku\_campus\_00 & 15.41 \textbar{} 0.464 \textbar{} 0.675 & 15.50 \textbar{} 0.302 \textbar{} 0.794 & 18.70 \textbar{} 0.621 \textbar{} 0.319 & 24.34 \textbar{} 0.787 \textbar{} 0.156 & \textbf{25.52} \textbar{} \textbf{0.820} \textbar{} \textbf{0.152} \\
-hku\_campus\_01 & 8.39 \textbar{} 0.065 \textbar{} 0.873 & 12.92 \textbar{} 0.294 \textbar{} 0.796 & 16.97 \textbar{} 0.593 \textbar{} 0.271 & 20.52 \textbar{} 0.674 \textbar{} 0.236 & \textbf{23.15} \textbar{} \textbf{0.754} \textbar{} \textbf{0.174} \\
-hku\_park\_00 & 13.24 \textbar{} 0.319 \textbar{} 0.733 & 14.02 \textbar{} 0.218 \textbar{} 0.790 & 14.98 \textbar{} 0.363 \textbar{} 0.396 & 17.17 \textbar{} 0.469 \textbar{} 0.340 & \textbf{17.80} \textbar{} \textbf{0.491} \textbar{} \textbf{0.331} \\
-hku\_park\_01 & 12.22 \textbar{} 0.289 \textbar{} 0.790 & 13.65 \textbar{} 0.207 \textbar{} 0.815 & 15.79 \textbar{} 0.392 \textbar{} 0.409 & 19.46 \textbar{} 0.529 \textbar{} 0.325 & \textbf{20.65} \textbar{} \textbf{0.580} \textbar{} \textbf{0.248} \\
+\multicolumn{5}{l}{\textbf{R3LIVE (Avia)}} \\
+degenerate\_seq\_00 & 14.59 \textbar{} 0.460 \textbar{} 0.624 & 19.35 \textbar{} 0.698 \textbar{} 0.212 & 21.99 \textbar{} 0.782 \textbar{} 0.162 & \textbf{23.41} \textbar{} \textbf{0.821} \textbar{} \textbf{0.137} \\
+degenerate\_seq\_01 & 14.66 \textbar{} 0.438 \textbar{} 0.692 & 18.57 \textbar{} 0.621 \textbar{} 0.277 & 22.94 \textbar{} 0.790 \textbar{} 0.159 & \textbf{23.54} \textbar{} \textbf{0.810} \textbar{} \textbf{0.157} \\
+hku\_campus\_00 & 15.41 \textbar{} 0.464 \textbar{} 0.675 & 18.70 \textbar{} 0.621 \textbar{} 0.319 & 24.34 \textbar{} 0.787 \textbar{} 0.156 & \textbf{25.52} \textbar{} \textbf{0.820} \textbar{} \textbf{0.152} \\
+hku\_campus\_01 & 8.39 \textbar{} 0.065 \textbar{} 0.873 & 16.97 \textbar{} 0.593 \textbar{} 0.271 & 20.52 \textbar{} 0.674 \textbar{} 0.236 & \textbf{23.15} \textbar{} \textbf{0.754} \textbar{} \textbf{0.174} \\
+hku\_park\_00 & 13.24 \textbar{} 0.319 \textbar{} 0.733 & 14.98 \textbar{} 0.363 \textbar{} 0.396 & 17.17 \textbar{} 0.469 \textbar{} 0.340 & \textbf{17.80} \textbar{} \textbf{0.491} \textbar{} \textbf{0.331} \\
+hku\_park\_01 & 12.22 \textbar{} 0.289 \textbar{} 0.790 & 15.79 \textbar{} 0.392 \textbar{} 0.409 & 19.46 \textbar{} 0.529 \textbar{} 0.325 & \textbf{20.65} \textbar{} \textbf{0.580} \textbar{} \textbf{0.248} \\
 \rowcolor{black!8}
-\multicolumn{6}{l}{\textbf{MCD (OS1-64)}} \\
-tuhh\_day\_02 & 8.72 \textbar{} 0.158 \textbar{} 0.893 & 12.65 \textbar{} 0.295 \textbar{} 0.766 & 11.15 \textbar{} 0.478 \textbar{} 0.350 & 20.35 \textbar{} 0.626 \textbar{} 0.262 & \textbf{20.99} \textbar{} \textbf{0.652} \textbar{} \textbf{0.249} \\
-tuhh\_day\_03 & 8.09 \textbar{} 0.136 \textbar{} 0.896 & 12.48 \textbar{} 0.407 \textbar{} 0.684 & 11.36 \textbar{} 0.542 \textbar{} 0.301 & 21.38 \textbar{} 0.672 \textbar{} \textbf{0.229} & \textbf{21.82} \textbar{} \textbf{0.688} \textbar{} 0.238 \\
-tuhh\_day\_04 & 11.73 \textbar{} 0.250 \textbar{} 0.805 & 13.02 \textbar{} 0.413 \textbar{} 0.626 & 13.86 \textbar{} 0.384 \textbar{} 0.398 & \textbf{19.27} \textbar{} \textbf{0.528} \textbar{} 0.310 & 19.07 \textbar{} 0.506 \textbar{} \textbf{0.309} \\
+\multicolumn{5}{l}{\textbf{MCD (OS1-64)}} \\
+tuhh\_day\_02 & 8.72 \textbar{} 0.158 \textbar{} 0.893 & 11.15 \textbar{} 0.478 \textbar{} 0.350 & 20.35 \textbar{} 0.626 \textbar{} 0.262 & \textbf{20.99} \textbar{} \textbf{0.652} \textbar{} \textbf{0.249} \\
+tuhh\_day\_03 & 8.09 \textbar{} 0.136 \textbar{} 0.896 & 11.36 \textbar{} 0.542 \textbar{} 0.301 & 21.38 \textbar{} 0.672 \textbar{} \textbf{0.229} & \textbf{21.82} \textbar{} \textbf{0.688} \textbar{} 0.238 \\
+tuhh\_day\_04 & 11.73 \textbar{} 0.250 \textbar{} 0.805 & 13.86 \textbar{} 0.384 \textbar{} 0.398 & \textbf{19.27} \textbar{} \textbf{0.528} \textbar{} 0.310 & 19.07 \textbar{} 0.506 \textbar{} \textbf{0.309} \\
 \rowcolor{black!8}
-\multicolumn{6}{l}{\textbf{Self-Collected Campus Dataset}} \\
-seu\_campus\_seq\_00 & 14.56 \textbar{} 0.411 \textbar{} 0.732 & -- & 18.54 \textbar{} 0.563 \textbar{} 0.366 & 23.97 \textbar{} 0.769 \textbar{} 0.215 & \textbf{25.55} \textbar{} \textbf{0.830} \textbar{} \textbf{0.145} \\
-seu\_campus\_seq\_01 & 13.21 \textbar{} 0.392 \textbar{} 0.796 & -- & 17.14 \textbar{} 0.528 \textbar{} 0.421 & 22.76 \textbar{} 0.711 \textbar{} 0.195 & \textbf{24.56} \textbar{} \textbf{0.797} \textbar{} \textbf{0.161} \\
+\multicolumn{5}{l}{\textbf{Self-Collected Campus Dataset}} \\
+seu\_campus\_seq\_00 & 14.56 \textbar{} 0.411 \textbar{} 0.732 & 18.54 \textbar{} 0.563 \textbar{} 0.366 & 23.97 \textbar{} 0.769 \textbar{} 0.215 & \textbf{25.55} \textbar{} \textbf{0.830} \textbar{} \textbf{0.145} \\
+seu\_campus\_seq\_01 & 13.21 \textbar{} 0.392 \textbar{} 0.796 & 17.14 \textbar{} 0.528 \textbar{} 0.421 & 22.76 \textbar{} 0.711 \textbar{} 0.195 & \textbf{24.56} \textbar{} \textbf{0.797} \textbar{} \textbf{0.161} \\
 \bottomrule
 \end{tabular}%
 }
