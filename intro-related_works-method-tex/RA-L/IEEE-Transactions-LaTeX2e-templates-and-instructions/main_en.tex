@@ -286,33 +286,17 @@ seu\_campus\_seq\_01 & 13.21 \textbar{} 0.392 \textbar{} 0.796 & -- & 17.14 \tex
 \includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/mm3dgs/test_0516.png} &
 \includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/gslic2/test_0516.jpg} &
 \includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/ours/test_0516.jpg} \\
+\includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/gt/test_1080.png} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/monogs/test_1080.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/mm3dgs/test_1080.png} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/gslic2/test_1080.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/ours/test_1080.jpg} \\
 \end{tabular}
-\caption{Qualitative comparison results on the R3LIVE dataset. The first row shows frame 690 of the \texttt{hku\_campus\_00} sequence, and the second row shows frame 516 of the \texttt{degenerate\_seq\_00} sequence. Compared with MonoGS, MM3DGS-SLAM, and Gaussian-LIC2, our method preserves clearer structure around ground textures, pillar boundaries, and bright regions while significantly reducing blur, drag, and local collapse.}
+\caption{Qualitative comparison results on both public and self-collected datasets. The first row shows frame 690 of \texttt{hku\_campus\_00}, the second row shows frame 516 of \texttt{degenerate\_seq\_00}, and the third row shows frame 1080 of \texttt{seu\_campus\_seq\_01}. Compared with MonoGS, MM3DGS-SLAM, and Gaussian-LIC2, our method preserves clearer structures and textures while significantly reducing blur, drag, and local distortion.}
 \label{fig:qualitative_compare}
 \end{figure*}
 
-Figure~\ref{fig:qualitative_compare} presents two representative qualitative results. For the indoor-outdoor transition scene in \texttt{hku\_campus\_00}, MonoGS fails to recover a stable structure almost entirely, and MM3DGS-SLAM still exhibits noticeably over-smoothed structures and weakened boundary sharpness. Gaussian-LIC2 reconstructs the main geometric outline but still shows obvious blur and edge softness near the strongly exposed exit and the right-side pillar region. In contrast, our method better preserves the floor-tile texture and pillar contour. In the \texttt{degenerate\_seq\_00} scene, MonoGS exhibits large-scale collapse and incorrect color accumulation, MM3DGS-SLAM recovers more structure but still suffers from noticeable distortion in difficult regions, and Gaussian-LIC2 still shows strong drag in the bright region at the lower left. Our method is further superior in both overall clarity and local consistency.
-
-\begin{figure}[!t]
-\centering
-\begingroup
-% 单栏内并排 5 张图时，长方法名会撑宽 tabular；固定单元宽度并拆行，避免越过栏宽。
-\def\customqualwidth{0.19\columnwidth}
-\newcommand{\customquallabel}[1]{\parbox[c]{\customqualwidth}{\centering\scriptsize #1}}
-\begin{tabular}{@{}c@{\hspace{1pt}}c@{\hspace{1pt}}c@{\hspace{1pt}}c@{\hspace{1pt}}c@{}}
-\customquallabel{GT} & \customquallabel{MonoGS} & \customquallabel{MM3DGS-\\SLAM} & \customquallabel{Gaussian-\\LIC2} & \customquallabel{Ours} \\
-\includegraphics[width=\customqualwidth]{../../../images/compare-custom-2/gt/test_1080.png} &
-\includegraphics[width=\customqualwidth]{../../../images/compare-custom-2/monogs/test_1080.jpg} &
-\includegraphics[width=\customqualwidth]{../../../images/compare-custom-2/mm3dgs/test_1080.png} &
-\includegraphics[width=\customqualwidth]{../../../images/compare-custom-2/gslic2/test_1080.jpg} &
-\includegraphics[width=\customqualwidth]{../../../images/compare-custom-2/ours/test_1080.jpg} \\
-\end{tabular}
-\endgroup
-\caption{Qualitative comparison results on our self-collected campus dataset. The example shows frame \texttt{1080} from \texttt{seu\_campus\_seq\_01}. Compared with MonoGS, MM3DGS-SLAM, and Gaussian-LIC2, our method preserves clearer building contours, ground textures, and distant structures, while reducing blur and local distortion.}
-\label{fig:qualitative_compare_custom}
-\end{figure}
-
-Figure~\ref{fig:qualitative_compare_custom} shows a representative qualitative result on \texttt{seu\_campus\_seq\_01}. In this scene, MonoGS produces obvious blur and structural degradation, while MM3DGS-SLAM recovers a more complete layout but still loses fine details around distant building edges. Gaussian-LIC2 reconstructs the main scene structure, yet remaining smoothing and local distortion can still be observed on the facade boundaries and textured ground areas. Our method preserves sharper building outlines and more stable scene structure, further supporting the quantitative gains on the self-collected sequences.
+Figure~\ref{fig:qualitative_compare} presents three representative qualitative results. For the indoor-outdoor transition scene in \texttt{hku\_campus\_00}, MonoGS fails to recover a stable structure almost entirely, and MM3DGS-SLAM still exhibits noticeably over-smoothed structures and weakened boundary sharpness. Gaussian-LIC2 reconstructs the main geometric outline but still shows obvious blur and edge softness near the strongly exposed exit and the right-side pillar region. In contrast, our method better preserves the floor-tile texture and pillar contour. In the \texttt{degenerate\_seq\_00} scene, MonoGS exhibits large-scale collapse and incorrect color accumulation, MM3DGS-SLAM recovers more structure but still suffers from noticeable distortion in difficult regions, and Gaussian-LIC2 still shows strong drag in the bright region at the lower left. In the self-collected \texttt{seu\_campus\_seq\_01} scene, MonoGS produces obvious blur and structural degradation, MM3DGS-SLAM recovers a more complete layout but still loses fine details around distant building edges, and Gaussian-LIC2 still shows smoothing and local distortion on facade boundaries and textured ground areas. Our method remains superior in overall clarity, structural sharpness, and local consistency across all three scenes.
 
 \subsection{Ablation Study: The Role of the Feedforward Regressor}
 
