@@ -4,7 +4,7 @@
 
 \begin{table*}[!t]
 \centering
-\caption{公开 R3LIVE（Avia）与 MCD（OS1-64）数据集上序列内新视角 RGB 渲染结果对比。评价格式为 PSNR$\uparrow$ SSIM$\uparrow$ LPIPS$\downarrow$。}
+\caption{公开 R3LIVE（Avia）、MCD（OS1-64）以及自建校园数据集上的序列内新视角 RGB 渲染结果对比。评价格式为 PSNR$\uparrow$ SSIM$\uparrow$ LPIPS$\downarrow$。}
 \label{tab:r3live_rendering}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{8pt}
@@ -29,6 +29,10 @@ hku\_park\_01 & 12.22 | 0.289 | 0.790 & 13.65 | 0.207 | 0.815 & 15.79 | 0.392 | 
 tuhh\_day\_02 & 8.72 | 0.158 | 0.893 & 12.65 | 0.295 | 0.766 & 11.15 | 0.478 | 0.350 & 20.35 | 0.626 | 0.262 & \textbf{20.99} | \textbf{0.652} | \textbf{0.249} \\
 tuhh\_day\_03 & 8.09 | 0.136 | 0.896 & 12.48 | 0.407 | 0.684 & 11.36 | 0.542 | 0.301 & 21.38 | 0.672 | \textbf{0.229} & \textbf{21.82} | \textbf{0.688} | 0.238 \\
 tuhh\_day\_04 & 11.73 | 0.250 | 0.805 & 13.02 | 0.413 | 0.626 & 13.86 | 0.384 | 0.398 & \textbf{19.27} | \textbf{0.528} | 0.310 & 19.07 | 0.506 | \textbf{0.309} \\
+\rowcolor{black!8}
+\multicolumn{6}{l}{\textbf{Self-Collected Campus Dataset}} \\
+full\_campus-0 & -- & -- & -- & 23.97 | 0.769 | 0.215 & \textbf{25.55} | \textbf{0.830} | \textbf{0.145} \\
+campus-1 & -- & -- & -- & 22.76 | 0.711 | 0.195 & \textbf{24.56} | \textbf{0.797} | \textbf{0.161} \\
 \bottomrule
 \end{tabular}%
 }
