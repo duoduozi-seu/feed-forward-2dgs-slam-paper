@@ -6,6 +6,11 @@
 
 \section{Method}
 
+% IEEEtran 的 \subsubsection/\paragraph 在期刊模板中会生成运行内标题。
+% 会议稿直接迁移过来时，中文方法节容易出现异常缩进和重复编号（例如 a) 与手写 (a) 叠加）。
+% 因此这里统一改为手工控制的小标题引导样式，保持版式稳定且与模板观感一致。
+\providecommand{\methodlead}[1]{\vspace{0.35em}\noindent\textit{#1}}
+
 \subsection{系统概述}
 
 本系统是一个基于外部位姿前端的增量式 2DGS 场景重建后端。系统接收外部 LiDAR-Inertial-Camera 前端（如 R3Live）实时输出的同步数据流，每帧包含 RGB 图像、稀疏 LiDAR 点云和 6-DOF 相机位姿，以 2DGS surfel 为基础地图表示。整体流程如图 X 所示。
@@ -30,13 +35,9 @@
 
 为在增量式建图中生成足够密集且几何合理的初始高斯点，系统联合使用 SPNet 深度补全与 DA3 法线引导两个互补模块。
 
-\subsubsection{SPNet 深度补全}
+\methodlead{1) SPNet 深度补全：}稀疏 LiDAR 点云在图像平面上覆盖有限，难以为 LiDAR 视场之外或遮挡区域提供几何观测。系统遵循 Gaussian-LIC2 的方案，采用 SPNet 轻量级深度补全网络将 RGB 图像与稀疏 LiDAR 深度融合为稠密深度图，并在无 LiDAR 覆盖的区域采样补充 3D 初始点。最终，SPNet 补充点与原始 LiDAR 投影点合并构成初始点集。
 
-稀疏 LiDAR 点云在图像平面上覆盖有限，难以为 LiDAR 视场之外或遮挡区域提供几何观测。系统遵循 Gaussian-LIC2 的方案，采用 SPNet 轻量级深度补全网络将 RGB 图像与稀疏 LiDAR 深度融合为稠密深度图，并在无 LiDAR 覆盖的区域采样补充 3D 初始点。最终，SPNet 补充点与原始 LiDAR 投影点合并构成初始点集。
-
-\subsubsection{DA3 法线引导}
-
-系统使用 DA3（基于 Depth Anything v3 的单目深度估计模型）为每个初始点对应的 surfel 提供初始法线方向。DA3 对当前帧 RGB 图像推理输出相对深度图后，系统通过最小二乘仿射对齐将其与稀疏 LiDAR 深度配准，得到与真实尺度一致的稠密深度图，再以中心差分计算逐像素法线。按初始点的像素坐标在法线图上采样，得到每个初始点的相机空间法线 $\mathbf{n}_{\text{cam}} \in \mathbb{R}^3$。
+\methodlead{2) DA3 法线引导：}系统使用 DA3（基于 Depth Anything v3 的单目深度估计模型）为每个初始点对应的 surfel 提供初始法线方向。DA3 对当前帧 RGB 图像推理输出相对深度图后，系统通过最小二乘仿射对齐将其与稀疏 LiDAR 深度配准，得到与真实尺度一致的稠密深度图，再以中心差分计算逐像素法线。按初始点的像素坐标在法线图上采样，得到每个初始点的相机空间法线 $\mathbf{n}_{\text{cam}} \in \mathbb{R}^3$。
 
 需要指出的是，DA3 法线计算前置于前馈回归网络——法线先验首先由 DA3 独立计算完成，随后作为输入传入前馈网络，网络在此基础上进行微量修正和完整旋转构造（详见 III-D.4 节）。
 
@@ -52,9 +53,7 @@ f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
 
 其中输出分别对应 surfel 的二维尺度、旋转、不透明度以及 SH 颜色参数。下面分别说明 $\mathbf{ctx}_i$ 与 $\mathbf{g}_i$ 的构造方式，以及它们如何被编码并解码为最终高斯属性。
 
-\subsubsection{逐点上下文构造}
-
-前馈网络的输入准备核心在于逐点对齐的上下文构造（point-aligned context construction）。与 pixelSplat、MVSplat 等需要从图像中同时推断几何与高斯属性的离线纯视觉方法不同，本文已经通过 LiDAR 与深度先验获得候选点，因此无需再让网络隐式恢复位置；系统只需将候选点显式投影到共视窗口，并在逐点层面构造多视角上下文特征，使每个输入向量都与一个待插入的 surfel 一一对应。
+\methodlead{1) 逐点上下文构造：}前馈网络的输入准备核心在于逐点对齐的上下文构造（point-aligned context construction）。与 pixelSplat、MVSplat 等需要从图像中同时推断几何与高斯属性的离线纯视觉方法不同，本文已经通过 LiDAR 与深度先验获得候选点，因此无需再让网络隐式恢复位置；系统只需将候选点显式投影到共视窗口，并在逐点层面构造多视角上下文特征，使每个输入向量都与一个待插入的 surfel 一一对应。
 
 特征提取模块沿用 pixelSplat 的 backbone 设计，从多尺度 ResNet 特征层经 $1 \times 1$ 卷积投影到统一维度，再经双线性上采样后求和，得到与输入图像同分辨率的逐像素特征图。为降低训练成本并提高稳定性，系统直接复用 pixelSplat 发布权重中的 backbone 参数，并在训练过程中保持冻结。该共享 backbone 对四类图像分别提取特征图：当前帧原始图像 $I_t \to F_t^{\text{img}}$，当前帧渲染图像 $\hat{I}_t \to F_t^{\text{ren}}$（用当前高斯地图从当前视角渲染），滑窗内历史帧原始图像 $\{I_{t-k}\} \to \{F_{t-k}^{\text{img}}\}$，以及历史帧渲染图像 $\{\hat{I}_{t-k}\} \to \{F_{t-k}^{\text{ren}}\}$（用当前高斯地图从历史视角渲染）。渲染图像的引入使网络能感知当前地图在该位置的重建状态，渲染特征与原始特征的差异隐式指示了该区域的重建不足程度。
 
@@ -62,9 +61,7 @@ f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
 
 在历史帧投影与特征采样阶段，对共视窗口内 $W$ 帧历史关键帧，逐帧将候选点的世界坐标投影到该历史帧的图像平面，进行可见性判断（正向深度且落在图像范围内），在通过可见性的像素位置上分别从 $F_{t-k}^{\text{img}}$ 和 $F_{t-k}^{\text{ren}}$ 采样，得到逐点历史特征 $\mathbf{f}_i^{\text{hist}} \in \mathbb{R}^{W \times D}$、历史渲染特征 $\mathbf{f}_i^{\text{hist\_ren}} \in \mathbb{R}^{W \times D}$ 及可见性掩码 $\mathbf{m}_i^{\text{hist}} \in \{0,1\}^{W}$。同时计算每帧的观察方向（统一到当前帧坐标系表达）：$\mathbf{d}_{i,k}^{\text{hist}} = \text{normalize}(R_{\text{cw}}^t (\boldsymbol{\mu}_i - \mathbf{c}_{t-k}))$，其中 $\mathbf{c}_{t-k}$ 为历史帧相机中心。该方向编码随后与历史特征一同送入注意力模块。
 
-\subsubsection{跨注意力时序上下文融合}
-
-为将 $W$ 帧历史上下文聚合为固定维度的时序上下文向量，系统采用单头跨注意力模块。查询向量 $\mathbf{q}_i$ 由当前帧的观察方向、图像特征和渲染特征拼接后经线性投影得到；键和值向量 $\mathbf{k}_{i,k}$、$\mathbf{v}_{i,k}$ 则由对应历史帧的同类信息构造。时序上下文通过带可见性掩码的缩放点积注意力计算：
+\methodlead{2) 跨注意力时序上下文融合：}为将 $W$ 帧历史上下文聚合为固定维度的时序上下文向量，系统采用单头跨注意力模块。查询向量 $\mathbf{q}_i$ 由当前帧的观察方向、图像特征和渲染特征拼接后经线性投影得到；键和值向量 $\mathbf{k}_{i,k}$、$\mathbf{v}_{i,k}$ 则由对应历史帧的同类信息构造。时序上下文通过带可见性掩码的缩放点积注意力计算：
 
 \begin{equation}
 \mathbf{ctx}_i^{\text{attn}} = \text{softmax}\!\left(\frac{\mathbf{q}_i \mathbf{K}_i^\top}{\sqrt{d_k}} + \mathbf{M}_i\right) \mathbf{V}_i
@@ -72,9 +69,7 @@ f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
 
 其中 $d_k = 64$，$\mathbf{M}_i$ 将不可见帧的对应位置填充为 $-\infty$ 以完全排除其贡献。该设计的关键在于：观察方向显式参与查询和键的投影，使注意力权重能隐式编码视差关系，接近当前视角的历史帧自然获得更高权重。键和值共享相同的历史帧输入，使历史信息同时参与匹配和内容聚合。
 
-\subsubsection{几何输入编码与多头预测解码}
-
-在得到时序上下文后，系统将当前帧原始/渲染特征与其拼接，形成点 $i$ 的上下文表征
+\methodlead{3) 几何输入编码与多头预测解码：}在得到时序上下文后，系统将当前帧原始/渲染特征与其拼接，形成点 $i$ 的上下文表征
 \begin{equation}
 \mathbf{ctx}_i = [\mathbf{f}_i^{\text{curr}} \| \mathbf{f}_i^{\text{ren}} \| \mathbf{ctx}_i^{\text{attn}}],
 \end{equation}
@@ -96,9 +91,7 @@ f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
 
 编码器由一层 $544 \to 512$ 线性投影和 4 个 pre-activation 残差块组成，输出 512 维特征 $\mathbf{h}_i$。在此基础上，多个独立预测头以 $\text{Linear} \to \text{ReLU} \to \text{Linear}$ 的形式回归不同属性；各头的输出并不直接作为最终高斯参数，而是经过几何约束解码，将网络预测锚定在上游几何先验上。
 
-\paragraph{(a) 法线引导的旋转构造}
-
-系统不直接回归四元数（无约束空间中容易产生几何不一致的解），而是以 DA3 提供的相机空间法线 $\mathbf{n}_i^{\text{cam}}$ 为锚点，由网络预测修正量，通过正交化过程推导完整旋转。
+\methodlead{a) 法线引导的旋转构造：}系统不直接回归四元数（无约束空间中容易产生几何不一致的解），而是以 DA3 提供的相机空间法线 $\mathbf{n}_i^{\text{cam}}$ 为锚点，由网络预测修正量，通过正交化过程推导完整旋转。
 
 网络首先预测法线修正向量 $\delta \mathbf{z}_i \in \mathbb{R}^3$、混合强度 $\lambda_i = \text{softplus}(\cdot) \in \mathbb{R}_{>0}$ 和辅助向量 $\mathbf{a}_i \in \mathbb{R}^3$，由此得到修正后的法线方向：
 
@@ -114,9 +107,7 @@ f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
 
 最终，相机系旋转矩阵 $[\mathbf{x}_i \mid \mathbf{y}_i \mid \mathbf{z}_i]$ 经当前帧位姿 $R_{\text{wc}}$ 转换到世界系并转为四元数存储。初始化设计确保网络起步时紧靠几何先验：$\lambda$ 头的 bias 初始化为 $-2.0$（使 $\text{softplus}(-2) \approx 0.13$，初始修正幅度很小），$\mathbf{a}$ 头的 bias 初始化为 $0.1$（避免退化叉积）。这保证了在训练初期，surfel 法线方向几乎完全由 DA3 先验决定，网络逐步学习必要的偏离。
 
-\paragraph{(b) 密度自适应尺度预测}
-
-网络预测 2D 尺度在像素平面上的归一化值，并通过局部点密度先验进行自适应缩放：
+\methodlead{b) 密度自适应尺度预测：}网络预测 2D 尺度在像素平面上的归一化值，并通过局部点密度先验进行自适应缩放：
 
 \begin{equation}
 \mathbf{s}_i^{\text{pixel}} = \frac{d_i^{\text{nn}}}{2} \cdot \exp(\text{head}(\mathbf{h}_i)) \in \mathbb{R}^2_{>0}
@@ -124,30 +115,20 @@ f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
 
 其中 $d_i^{\text{nn}}$ 为候选点的 KNN 像素间距。最终世界空间尺度通过 $\mathbf{s}_i^{\text{world}} = \mathbf{s}_i^{\text{pixel}} / (\bar{z}_i^{-1} \cdot f)$ 转换。这一参数化使网络无需学习深度依赖的绝对尺度，而只需学习与局部密度相关的相对尺度。
 
-\paragraph{(c) 颜色}
+\methodlead{c) 颜色：}DC 颜色头输出残差 $\Delta \mathbf{c}_i^{\text{dc}}$，加到由单帧 RGB 观测转换的基础 SH 先验上得到 $\mathbf{c}_i^{\text{dc}} = \text{RGB2SH}(\mathbf{I}_i) + \Delta \mathbf{c}_i^{\text{dc}}$；高阶 SH 系数由独立头直接预测。这种残差设计使网络从合理的颜色先验出发，仅需学习修正量。
 
-DC 颜色头输出残差 $\Delta \mathbf{c}_i^{\text{dc}}$，加到由单帧 RGB 观测转换的基础 SH 先验上得到 $\mathbf{c}_i^{\text{dc}} = \text{RGB2SH}(\mathbf{I}_i) + \Delta \mathbf{c}_i^{\text{dc}}$；高阶 SH 系数由独立头直接预测。这种残差设计使网络从合理的颜色先验出发，仅需学习修正量。
-
-\paragraph{(d) 不透明度}
-
-不透明度头输出经 sigmoid 激活的真实不透明度 $\alpha_i = \sigma(\text{head}(\mathbf{h}_i))$，后续转为 logit 空间存储。
+\methodlead{d) 不透明度：}不透明度头输出经 sigmoid 激活的真实不透明度 $\alpha_i = \sigma(\text{head}(\mathbf{h}_i))$，后续转为 logit 空间存储。
 
 \subsection{自蒸馏训练闭环}
 
 前馈网络的训练不依赖外部多视图标注数据集，而是通过以下自蒸馏管线完成。
 
-\subsubsection{在线数据采集}
-
-系统首先以 \texttt{naive} 模式（不使用前馈网络，而采用基于规则的初始化）在训练场景上运行一次完整的增量式建图。运行过程中，当某帧新增高斯的累积训练次数达到预设阈值时，系统快照这些高斯在该时刻的属性作为监督信号；与此同时，将它们投影到当前滑动窗口中，按照前文定义构造对应的上下文表征 $\mathbf{ctx}_i$ 与几何先验向量 $\mathbf{g}_i$。
+\methodlead{1) 在线数据采集：}系统首先以 \texttt{naive} 模式（不使用前馈网络，而采用基于规则的初始化）在训练场景上运行一次完整的增量式建图。运行过程中，当某帧新增高斯的累积训练次数达到预设阈值时，系统快照这些高斯在该时刻的属性作为监督信号；与此同时，将它们投影到当前滑动窗口中，按照前文定义构造对应的上下文表征 $\mathbf{ctx}_i$ 与几何先验向量 $\mathbf{g}_i$。
 
 因此，采集产物以高斯为核心单位组织，每个训练样本都可直接写成前文定义的输入输出对 $(\mathbf{ctx}_i, \mathbf{g}_i) \mapsto (\mathbf{s}_i, \mathbf{q}_i, \alpha_i, \mathbf{c}_i^{\mathrm{dc}}, \mathbf{c}_i^{\mathrm{rest}})$。
 
-\subsubsection{尺度-旋转歧义消解}
-
-2DGS surfel 存在固有的尺度-旋转歧义：交换两个切线方向的尺度并相应旋转 $90^\circ$ 可得到等价表示。若不消解此歧义，训练标签中同一几何形态会对应两种不同的参数组合，导致网络学习不稳定。
+\methodlead{2) 尺度-旋转歧义消解：}2DGS surfel 存在固有的尺度-旋转歧义：交换两个切线方向的尺度并相应旋转 $90^\circ$ 可得到等价表示。若不消解此歧义，训练标签中同一几何形态会对应两种不同的参数组合，导致网络学习不稳定。
 
 数据准备阶段显式消解此歧义：对每个 GT 高斯，强制 $s_1 \geq s_2$；当需要交换时，同步对四元数施加 $90^\circ$ 旋转：$\mathbf{q}' = \text{normalize}((w-z, x+y, y-x, w+z) / \sqrt{2})$。
 
-\subsubsection{训练目标}
-
-网络以多任务损失联合训练，涵盖尺度、旋转、颜色和不透明度全部预测属性。尺度损失在 log 世界尺度空间以 L1 距离度量；旋转损失采用四元数余弦距离 $\mathcal{L}_{\text{rot}} = 1 - |\langle \mathbf{q}_{\text{pred}}, \mathbf{q}_{\text{gt}} \rangle|$；颜色损失对 DC 和高阶 SH 系数分别以 MSE 监督；不透明度损失为 L1 距离。
+\methodlead{3) 训练目标：}网络以多任务损失联合训练，涵盖尺度、旋转、颜色和不透明度全部预测属性。尺度损失在 log 世界尺度空间以 L1 距离度量；旋转损失采用四元数余弦距离 $\mathcal{L}_{\text{rot}} = 1 - |\langle \mathbf{q}_{\text{pred}}, \mathbf{q}_{\text{gt}} \rangle|$；颜色损失对 DC 和高阶 SH 系数分别以 MSE 监督；不透明度损失为 L1 距离。
