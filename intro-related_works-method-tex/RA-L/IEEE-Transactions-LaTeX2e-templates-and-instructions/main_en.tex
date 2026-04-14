@@ -30,7 +30,7 @@
 \maketitle
 
 \begin{abstract}
-Incremental 3D scene reconstruction requires a system to continuously extend the map while ingesting new observations frame by frame, and the limited online optimization budget makes the initial quality of newly inserted Gaussians a decisive factor for the accumulated map quality. Existing incremental mapping systems based on 3D Gaussian Splatting still suffer from two coupled limitations in representation and initialization: 3D ellipsoidal primitives lack explicit surface-normal semantics, and rule-based initialization strategies cannot fully exploit external geometric priors. To address these issues jointly, we propose a context-aware feedforward Gaussian regression system for incremental 2DGS scene reconstruction. The system uses 2DGS surfels as the map's base representation and fuses SPNet depth completion with monocular normal priors to construct candidate points and their geometric directions. A feedforward regression network aggregates image-rendering context from the current frame and historical frames via cross-attention and anchors surfel rotations to the normal prior through Gram-Schmidt orthogonalization, directly predicting complete surfel attributes in a single forward pass. Training is completed through a self-distillation loop and requires no externally labeled dataset. Experiments on R3LIVE and MCD show that the proposed method outperforms existing baselines on all test sequences, with an average improvement of 1.28 dB PSNR over the closest multisensor incremental Gaussian mapping baseline. Ablation studies further verify that the feedforward regressor consistently improves the early convergence quality of newly inserted Gaussians under a limited optimization budget.
+Incremental 3D scene reconstruction requires a system to continuously extend the map while ingesting new observations frame by frame, and the limited online optimization budget makes the initial quality of newly inserted Gaussians a decisive factor for the accumulated map quality. Existing incremental mapping systems based on 3D Gaussian Splatting still suffer from two coupled limitations in representation and initialization: 3D ellipsoidal primitives lack explicit surface-normal semantics, and rule-based initialization strategies cannot fully exploit external geometric priors. To address these issues jointly, we propose a context-aware feedforward Gaussian regression system for incremental 2DGS scene reconstruction. The system uses 2DGS surfels as the map's base representation and fuses SPNet depth completion with monocular normal priors to construct candidate points and their geometric directions. A feedforward regression network aggregates image-rendering context from the current frame and historical frames via cross-attention and anchors surfel rotations to the normal prior through Gram-Schmidt orthogonalization, directly predicting complete surfel attributes in a single forward pass. Training is completed through a self-distillation loop and requires no externally labeled dataset. Experiments on R3LIVE, MCD, and our self-collected dataset in Southeast University campuse show that the proposed method outperforms existing baselines across diverse test scenes, with an average improvement of 1.28 dB PSNR over the closest multisensor incremental Gaussian mapping baseline on R3LIVE. Ablation studies further verify that the feedforward regressor consistently improves the early convergence quality of newly inserted Gaussians under a limited optimization budget.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -222,7 +222,7 @@ This ambiguity is explicitly resolved during data preparation: for each ground-t
 \section{Experimental Results}
 
 \subsection{Experimental Setup}
-We validate the effectiveness of the proposed method from two aspects. First, we conduct quantitative and qualitative comparisons with MonoGS~\cite{matsuki2024gaussian}, Co-SLAM~\cite{wang2023co}, MM3DGS-SLAM~\cite{sun2024mm3dgs}, and Gaussian-LIC2~\cite{lang2025gaussianlic2} on the public R3LIVE (Avia) dataset~\cite{lin2022r} and the MCD (OS1-64) dataset~\cite{nguyen2024mcd}. Second, we perform an ablation study of the feedforward regressor on the \texttt{hku\_campus\_00} sequence. For novel-view rendering quality, we use PSNR, SSIM, and LPIPS as evaluation metrics, where higher is better for PSNR and SSIM, and lower is better for LPIPS. Unless otherwise specified, all methods are evaluated under the same data split, and non-training frames in each sequence are used for sequence-internal novel-view evaluation.
+We validate the effectiveness of the proposed method from three aspects. First, we conduct quantitative and qualitative comparisons with MonoGS~\cite{matsuki2024gaussian}, Co-SLAM~\cite{wang2023co}, MM3DGS-SLAM~\cite{sun2024mm3dgs}, and Gaussian-LIC2~\cite{lang2025gaussianlic2} on the public R3LIVE (Avia) dataset~\cite{lin2022r}. Second, we evaluate the generalization capability of the method under a different LiDAR configuration on the MCD (OS1-64) dataset~\cite{nguyen2024mcd}. Third, we further verify the applicability of the method in real new scenes on our self-collected campus dataset. For novel-view rendering quality, we use PSNR, SSIM, and LPIPS as evaluation metrics, where higher is better for PSNR and SSIM, and lower is better for LPIPS. Unless otherwise specified, all methods are evaluated under the same data split, and non-training frames in each sequence are used for sequence-internal novel-view evaluation.
 
 All experiments were carried out in a unified hardware and software environment for system deployment, network training, and new-scene testing. The experimental platform used Ubuntu 20.04 with Python 3.8, implemented in PyTorch 2.0.0 and CUDA 11.8. The hardware configuration consisted of a single RTX 4090D GPU with 24GB memory, an Intel(R) Xeon(R) Platinum 8481C processor with 16 vCPUs, and 80GB of system memory.
 
@@ -232,13 +232,13 @@ It should be emphasized that this set of experiments primarily studies the repre
 
 \subsection{Comparison with Existing Methods}
 
-Table~\ref{tab:r3live_rendering} reports the quantitative results on the R3LIVE (Avia) dataset~\cite{lin2022r} and the MCD (OS1-64) dataset~\cite{nguyen2024mcd}. For the R3LIVE (Avia) subset, our method achieves the best rendering metrics on all six test sequences. Compared with the closest multisensor baseline Gaussian-LIC2~\cite{lang2025gaussianlic2}, our method improves the average results on these six sequences by \textbf{1.28 dB} PSNR and \textbf{0.041} SSIM, while reducing LPIPS by \textbf{0.030} on average. In the more challenging \texttt{hku\_campus\_01} sequence, the PSNR gain reaches \textbf{2.63 dB}, indicating that the proposed context-aware feedforward insertion strategy can provide more reliable initialization for new Gaussians in difficult viewpoints and degraded regions. For the MCD (OS1-64) subset, the average PSNR and SSIM over the three sequences improve further by approximately \textbf{0.29 dB} and \textbf{0.007}, respectively, compared with Gaussian-LIC2~\cite{lang2025gaussianlic2}, while LPIPS also decreases slightly, showing that the method generalizes stably across different sensor configurations and campus scenes.
+Table~\ref{tab:r3live_rendering} reports the quantitative results on the R3LIVE (Avia) dataset~\cite{lin2022r}, the MCD (OS1-64) dataset~\cite{nguyen2024mcd}, and our self-collected campus dataset. For the R3LIVE (Avia) subset, our method achieves the best rendering metrics on all six test sequences. Compared with the closest multisensor baseline Gaussian-LIC2~\cite{lang2025gaussianlic2}, our method improves the average results on these six sequences by \textbf{1.28 dB} PSNR and \textbf{0.041} SSIM, while reducing LPIPS by \textbf{0.030} on average. In the more challenging \texttt{hku\_campus\_01} sequence, the PSNR gain reaches \textbf{2.63 dB}, indicating that the proposed context-aware feedforward insertion strategy can provide more reliable initialization for new Gaussians in difficult viewpoints and degraded regions. For the MCD (OS1-64) subset, the average PSNR and SSIM over the three sequences improve further by approximately \textbf{0.29 dB} and \textbf{0.007}, respectively, compared with Gaussian-LIC2~\cite{lang2025gaussianlic2}, while LPIPS also decreases slightly, showing that the method generalizes stably across different sensor configurations and campus scenes. The same trend is observed on our self-collected campus dataset. On \texttt{seu\_campus\_seq\_00} and \texttt{seu\_campus\_seq\_01}, our method consistently outperforms Gaussian-LIC2, improving PSNR from 23.97 to \textbf{25.55} and from 22.76 to \textbf{24.56}, improving SSIM from 0.769 to \textbf{0.830} and from 0.711 to \textbf{0.797}, and reducing LPIPS from 0.215 to \textbf{0.145} and from 0.195 to \textbf{0.161}. Averaged over the two sequences, this corresponds to a gain of \textbf{1.69 dB} in PSNR, \textbf{0.074} in SSIM, and a reduction of \textbf{0.052} in LPIPS, further supporting the applicability of the proposed feedforward insertion strategy in real campus scenes.
 
 From the perspective of individual methods, the purely visual MonoGS~\cite{matsuki2024gaussian} suffers from obvious blur, floating artifacts, and structural collapse in large-scale outdoor and degraded scenes, which shows that it is very difficult to correct inaccurate initialization only through subsequent optimization. After adding LiDAR geometric priors, Gaussian-LIC2~\cite{lang2025gaussianlic2} already achieves a significant improvement overall, but its new Gaussian attributes still mainly depend on rule-based design, so drag, excessive smoothing, and local distortion remain in bright regions, boundary regions, and poorly observed regions. In contrast, our method uses image-rendering context from the current and historical frames to provide surfels with attributes that are closer to the converged state at insertion time, so that subsequent limited optimization can produce more stable appearance and clearer structure.
 
 \begin{table*}[!t]
 \centering
-\caption{Comparison of sequence-wise novel-view RGB rendering results on the public R3LIVE (Avia) and MCD (OS1-64) datasets. The evaluation format is PSNR$\uparrow$ SSIM$\uparrow$ LPIPS$\downarrow$.}
+\caption{Comparison of sequence-wise novel-view RGB rendering results on the public R3LIVE (Avia), MCD (OS1-64), and our self-collected campus dataset. The evaluation format is PSNR$\uparrow$ SSIM$\uparrow$ LPIPS$\downarrow$.}
 \label{tab:r3live_rendering}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{8pt}
@@ -262,6 +262,10 @@ hku\_park\_01 & 12.22 \textbar{} 0.289 \textbar{} 0.790 & 13.65 \textbar{} 0.207
 tuhh\_day\_02 & 8.72 \textbar{} 0.158 \textbar{} 0.893 & 12.65 \textbar{} 0.295 \textbar{} 0.766 & 11.15 \textbar{} 0.478 \textbar{} 0.350 & 20.35 \textbar{} 0.626 \textbar{} 0.262 & \textbf{20.99} \textbar{} \textbf{0.652} \textbar{} \textbf{0.249} \\
 tuhh\_day\_03 & 8.09 \textbar{} 0.136 \textbar{} 0.896 & 12.48 \textbar{} 0.407 \textbar{} 0.684 & 11.36 \textbar{} 0.542 \textbar{} 0.301 & 21.38 \textbar{} 0.672 \textbar{} \textbf{0.229} & \textbf{21.82} \textbar{} \textbf{0.688} \textbar{} 0.238 \\
 tuhh\_day\_04 & 11.73 \textbar{} 0.250 \textbar{} 0.805 & 13.02 \textbar{} 0.413 \textbar{} 0.626 & 13.86 \textbar{} 0.384 \textbar{} 0.398 & \textbf{19.27} \textbar{} \textbf{0.528} \textbar{} 0.310 & 19.07 \textbar{} 0.506 \textbar{} \textbf{0.309} \\
+\rowcolor{black!8}
+\multicolumn{6}{l}{\textbf{Self-Collected Campus Dataset}} \\
+seu\_campus\_seq\_00 & 14.56 \textbar{} 0.411 \textbar{} 0.732 & -- & 18.54 \textbar{} 0.563 \textbar{} 0.366 & 23.97 \textbar{} 0.769 \textbar{} 0.215 & \textbf{25.55} \textbar{} \textbf{0.830} \textbar{} \textbf{0.145} \\
+seu\_campus\_seq\_01 & 13.21 \textbar{} 0.392 \textbar{} 0.796 & -- & 17.14 \textbar{} 0.528 \textbar{} 0.421 & 22.76 \textbar{} 0.711 \textbar{} 0.195 & \textbf{24.56} \textbar{} \textbf{0.797} \textbar{} \textbf{0.161} \\
 \bottomrule
 \end{tabular}%
 }
@@ -270,22 +274,41 @@ tuhh\_day\_04 & 11.73 \textbar{} 0.250 \textbar{} 0.805 & 13.02 \textbar{} 0.413
 \begin{figure*}[t]
 \centering
 \setlength{\tabcolsep}{2pt}
-\begin{tabular}{cccc}
-\small GT & \small MonoGS & \small Gaussian-LIC2 & \small Ours \\
-\includegraphics[width=0.235\textwidth]{../../../images/compare-hku_campus_00/gt/test_0690.jpg} &
-\includegraphics[width=0.235\textwidth]{../../../images/compare-hku_campus_00/monogs/0690-test.jpg} &
-\includegraphics[width=0.235\textwidth]{../../../images/compare-hku_campus_00/gslic2/test_0690.jpg} &
-\includegraphics[width=0.235\textwidth]{../../../images/compare-hku_campus_00/ours/test_0690.jpg} \\
-\includegraphics[width=0.235\textwidth]{../../../images/compare-degenerate_00/gt/test_0516.jpg} &
-\includegraphics[width=0.235\textwidth]{../../../images/compare-degenerate_00/monogs/0516-test.jpg} &
-\includegraphics[width=0.235\textwidth]{../../../images/compare-degenerate_00/gslic2/test_0516.jpg} &
-\includegraphics[width=0.235\textwidth]{../../../images/compare-degenerate_00/ours/test_0516.jpg} \\
+\begin{tabular}{ccccc}
+\small GT & \small MonoGS & \small MM3DGS-SLAM & \small Gaussian-LIC2 & \small Ours \\
+\includegraphics[width=0.188\textwidth]{../../../images/compare-hku_campus_00/gt/test_0690.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-hku_campus_00/monogs/0690-test.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-hku_campus_00/mm3dgs/test_0690.png} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-hku_campus_00/gslic2/test_0690.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-hku_campus_00/ours/test_0690.jpg} \\
+\includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/gt/test_0516.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/monogs/0516-test.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/mm3dgs/test_0516.png} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/gslic2/test_0516.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/ours/test_0516.jpg} \\
 \end{tabular}
-\caption{Qualitative comparison results on the R3LIVE dataset. The first row shows frame 690 of the \texttt{hku\_campus\_00} sequence, and the second row shows frame 516 of the \texttt{degenerate\_seq\_00} sequence. Compared with MonoGS and Gaussian-LIC2, our method preserves clearer structure around ground textures, pillar boundaries, and bright regions while significantly reducing blur, drag, and local collapse.}
+\caption{Qualitative comparison results on the R3LIVE dataset. The first row shows frame 690 of the \texttt{hku\_campus\_00} sequence, and the second row shows frame 516 of the \texttt{degenerate\_seq\_00} sequence. Compared with MonoGS, MM3DGS-SLAM, and Gaussian-LIC2, our method preserves clearer structure around ground textures, pillar boundaries, and bright regions while significantly reducing blur, drag, and local collapse.}
 \label{fig:qualitative_compare}
 \end{figure*}
 
-Figure~\ref{fig:qualitative_compare} presents two representative qualitative results. For the indoor-outdoor transition scene in \texttt{hku\_campus\_00}, MonoGS fails to recover a stable structure almost entirely, while Gaussian-LIC2 reconstructs the main geometric outline but still shows obvious blur and edge softness near the strongly exposed exit and the right-side pillar region. In contrast, our method better preserves the floor-tile texture and pillar contour. In the \texttt{degenerate\_seq\_00} scene, MonoGS exhibits large-scale collapse and incorrect color accumulation, while Gaussian-LIC2 recovers the main structure but still shows strong drag in the bright region at the lower left. Our method is further superior in both overall clarity and local consistency.
+Figure~\ref{fig:qualitative_compare} presents two representative qualitative results. For the indoor-outdoor transition scene in \texttt{hku\_campus\_00}, MonoGS fails to recover a stable structure almost entirely, and MM3DGS-SLAM still exhibits noticeably over-smoothed structures and weakened boundary sharpness. Gaussian-LIC2 reconstructs the main geometric outline but still shows obvious blur and edge softness near the strongly exposed exit and the right-side pillar region. In contrast, our method better preserves the floor-tile texture and pillar contour. In the \texttt{degenerate\_seq\_00} scene, MonoGS exhibits large-scale collapse and incorrect color accumulation, MM3DGS-SLAM recovers more structure but still suffers from noticeable distortion in difficult regions, and Gaussian-LIC2 still shows strong drag in the bright region at the lower left. Our method is further superior in both overall clarity and local consistency.
+
+\begin{figure}[!t]
+\centering
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{ccccc}
+\small GT & \small MonoGS & \small MM3DGS-SLAM & \small Gaussian-LIC2 & \small Ours \\
+\includegraphics[width=0.19\columnwidth]{../../../images/compare-custom-2/gt/test_1080.png} &
+\includegraphics[width=0.19\columnwidth]{../../../images/compare-custom-2/monogs/test_1080.jpg} &
+\includegraphics[width=0.19\columnwidth]{../../../images/compare-custom-2/mm3dgs/test_1080.png} &
+\includegraphics[width=0.19\columnwidth]{../../../images/compare-custom-2/gslic2/test_1080.jpg} &
+\includegraphics[width=0.19\columnwidth]{../../../images/compare-custom-2/ours/test_1080.jpg} \\
+\end{tabular}
+\caption{Qualitative comparison results on our self-collected campus dataset. The example shows frame \texttt{1080} from \texttt{seu\_campus\_seq\_01}. Compared with MonoGS, MM3DGS-SLAM, and Gaussian-LIC2, our method preserves clearer building contours, ground textures, and distant structures, while reducing blur and local distortion.}
+\label{fig:qualitative_compare_custom}
+\end{figure}
+
+Figure~\ref{fig:qualitative_compare_custom} shows a representative qualitative result on \texttt{seu\_campus\_seq\_01}. In this scene, MonoGS produces obvious blur and structural degradation, while MM3DGS-SLAM recovers a more complete layout but still loses fine details around distant building edges. Gaussian-LIC2 reconstructs the main scene structure, yet remaining smoothing and local distortion can still be observed on the facade boundaries and textured ground areas. Our method preserves sharper building outlines and more stable scene structure, further supporting the quantitative gains on the self-collected sequences.
 
 \subsection{Ablation Study: The Role of the Feedforward Regressor}
 
@@ -339,7 +362,7 @@ Two conclusions can be drawn from the above experiments. First, in the full nove
 
 For the problem that the initial quality of newly inserted Gaussians determines the accumulated quality of the map in incremental scene reconstruction, this paper proposes a context-aware feedforward Gaussian regression system based on 2DGS surfels. The method combines geometric priors with multiview image-rendering context and directly predicts the complete attributes of new surfels at insertion time, replacing conventional rule-based initialization. At the same time, the network can be trained through a self-distillation loop without additional labeled data.
 
-Experiments on the R3LIVE and MCD datasets show that the proposed method can stably improve the novel-view rendering quality of incremental Gaussian maps, and achieves an average gain of 1.28\,dB PSNR on R3LIVE compared with the closest multisensor baseline. Ablation experiments further show that the main benefit of the method comes from improving the initial state and early convergence quality of new surfels, which is especially important for online mapping under a limited optimization budget. The current method still relies on an external stable front end, and future work will further explore incremental Gaussian mapping under weaker prior conditions.
+Experiments on the R3LIVE, MCD, and self-collected campus datasets show that the proposed method can stably improve the novel-view rendering quality of incremental Gaussian maps, and achieves an average gain of 1.28\,dB PSNR on R3LIVE compared with the closest multisensor baseline. Ablation experiments further show that the main benefit of the method comes from improving the initial state and early convergence quality of new surfels, which is especially important for online mapping under a limited optimization budget. The current method still relies on an external stable front end, and future work will further explore incremental Gaussian mapping under weaker prior conditions.
 
 % \clearpage
 % \bibliographystyle{IEEEtran}
