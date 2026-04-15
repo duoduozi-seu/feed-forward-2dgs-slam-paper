@@ -19,31 +19,17 @@
 
 前馈回归网络的训练通过自蒸馏闭环完成。系统首先以 \texttt{naive} 模式（不使用前馈网络，采用传统的基于规则初始化）在训练场景上运行一遍完整的增量式建图；当某帧新增高斯的累积训练次数达到预设阈值后，系统快照其当前属性，并在该时刻构造对应的逐点上下文与几何先验，形成训练样本，随后离线训练前馈网络。
 
-\subsection{2DGS 表示}
-
-本系统采用 2D Gaussian Splatting（2DGS）作为地图基础表示。与标准 3DGS 的三维椭球原语不同，2DGS 将高斯压缩为嵌入三维空间的二维有向高斯盘（surfel），赋予每个原语明确的局部平面几何意义。每个 surfel 由中心位置 $\boldsymbol{\mu} \in \mathbb{R}^3$、两个正交切线方向 $\mathbf{t}_u$、$\mathbf{t}_v$ 及对应的二维尺度因子 $(s_u, s_v)$ 定义，法线方向由 $\mathbf{n} = \mathbf{t}_u \times \mathbf{t}_v$ 给出。方向信息以单位四元数 $\mathbf{q} \in \mathbb{S}^3$ 存储，其对应旋转矩阵 $\mathbf{R} = [\mathbf{t}_u \mid \mathbf{t}_v \mid \mathbf{n}]$。此外，每个 surfel 携带不透明度 $\alpha$ 和球谐颜色系数以表达视角依赖的外观。渲染阶段，像素颜色通过 alpha blending 由前到后逐层累积：
-
-\begin{equation}
-\mathbf{c}(\mathbf{x}) = \sum_{i} \mathbf{c}_i \, \alpha_i \, \hat{\mathcal{G}}_i(\mathbf{u}(\mathbf{x})) \prod_{j=1}^{i-1} \left(1 - \alpha_j \, \hat{\mathcal{G}}_j(\mathbf{u}(\mathbf{x}))\right)
-\end{equation}
-
-其中 $\hat{\mathcal{G}}_i$ 为 ray-splat intersection 计算的高斯权重。类似地，可对深度和法线进行相同的加权累积渲染几何信息。为充分利用 surfel 的表面化结构，系统在在线优化中引入深度畸变损失 $\mathcal{L}_{\text{dist}}$ 和法线一致性损失 $\mathcal{L}_{\text{normal}}$，分别促使沿射线的权重集中于单表面、并约束 surfel 法线与渲染深度推导的表面法线一致。
-
-2DGS 的核心优势在于每个 surfel 天然具备明确的法线语义，这使得外部法线先验能够直接与 surfel 旋转参数耦合，为后续前馈旋转预测提供几何可解释的锚点。
-
 \subsection{稠密几何先验}
 
-为在增量式建图中生成足够密集且几何合理的初始高斯点，系统联合使用 SPNet 深度补全与 DA3 法线引导两个互补模块。
+采用 SPNet 轻量级深度补全网络将 RGB 图像与稀疏 LiDAR 深度融合为稠密深度图，并在无 LiDAR 覆盖的区域采样补充 3D 初始点。最终，SPNet 补充点与原始 LiDAR 投影点合并构成初始点集。
 
-\methodlead{1) SPNet 深度补全：}稀疏 LiDAR 点云在图像平面上覆盖有限，难以为 LiDAR 视场之外或遮挡区域提供几何观测。系统遵循 Gaussian-LIC2 的方案，采用 SPNet 轻量级深度补全网络将 RGB 图像与稀疏 LiDAR 深度融合为稠密深度图，并在无 LiDAR 覆盖的区域采样补充 3D 初始点。最终，SPNet 补充点与原始 LiDAR 投影点合并构成初始点集。
-
-\methodlead{2) DA3 法线引导：}系统使用 DA3（基于 Depth Anything v3 的单目深度估计模型）为每个初始点对应的 surfel 提供初始法线方向。DA3 对当前帧 RGB 图像推理输出相对深度图后，系统通过最小二乘仿射对齐将其与稀疏 LiDAR 深度配准，得到与真实尺度一致的稠密深度图，再以中心差分计算逐像素法线。按初始点的像素坐标在法线图上采样，得到每个初始点的相机空间法线 $\mathbf{n}_{\text{cam}} \in \mathbb{R}^3$。
+使用 DA3 对当前帧 RGB 图像推理输出相对深度图后，系统通过最小二乘仿射对齐将其与稀疏 LiDAR 深度配准，得到与真实尺度一致的稠密深度图，再以中心差分计算逐像素法线。按初始点的像素坐标在法线图上采样，得到每个初始点的相机空间法线 $\mathbf{n}_{\text{cam}} \in \mathbb{R}^3$。
 
 需要指出的是，DA3 法线计算前置于前馈回归网络——法线先验首先由 DA3 独立计算完成，随后作为输入传入前馈网络，网络在此基础上进行微量修正和完整旋转构造（详见 III-D.4 节）。
 
 \subsection{前馈高斯回归网络}
 
-本节详细描述前馈网络的架构设计。与 MVSplat 一类直接从多视图图像恢复高斯参数的方法不同，本文关注的是在候选点已经由上游几何模块确定的条件下，学习从逐点上下文表征与局部几何先验到 surfel 参数的映射。对于当前关键帧筛选得到的 $N_t$ 个候选点，记 $\mathbf{ctx}_i$ 为点 $i$ 的融合后的上下文特征，$\mathbf{g}_i$ 为其几何先验向量，则前馈网络的目标可写为：
+与 MVSplat 一类直接从多视图图像恢复高斯参数的方法不同，本文关注的是在候选点已经由上游几何模块确定的条件下，学习从逐点上下文表征与局部几何先验到 surfel 参数的映射。对于当前关键帧筛选得到的 $N_t$ 个候选点，记 $\mathbf{ctx}_i$ 为点 $i$ 的融合后的上下文特征，$\mathbf{g}_i$ 为其几何先验向量，则前馈网络的目标可写为：
 
 \begin{equation}
 f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
@@ -51,11 +37,11 @@ f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
 \{(\mathbf{s}_i, \mathbf{q}_i, \alpha_i, \mathbf{c}_i^{\mathrm{dc}}, \mathbf{c}_i^{\mathrm{rest}})\}_{i=1}^{N_t},
 \end{equation}
 
-其中输出分别对应 surfel 的二维尺度、旋转、不透明度以及 SH 颜色参数。下面分别说明 $\mathbf{ctx}_i$ 与 $\mathbf{g}_i$ 的构造方式，以及它们如何被编码并解码为最终高斯属性。
+其中输出分别对应 surfel 的二维尺度、旋转、不透明度以及 SH 颜色参数。
 
 \methodlead{1) 逐点上下文构造：}前馈网络的输入准备核心在于逐点对齐的上下文构造（point-aligned context construction）。与 pixelSplat、MVSplat 等需要从图像中同时推断几何与高斯属性的离线纯视觉方法不同，本文已经通过 LiDAR 与深度先验获得候选点，因此无需再让网络隐式恢复位置；系统只需将候选点显式投影到共视窗口，并在逐点层面构造多视角上下文特征，使每个输入向量都与一个待插入的 surfel 一一对应。
 
-特征提取模块沿用 pixelSplat 的 backbone 设计，从多尺度 ResNet 特征层经 $1 \times 1$ 卷积投影到统一维度，再经双线性上采样后求和，得到与输入图像同分辨率的逐像素特征图。为降低训练成本并提高稳定性，系统直接复用 pixelSplat 发布权重中的 backbone 参数，并在训练过程中保持冻结。该共享 backbone 对四类图像分别提取特征图：当前帧原始图像 $I_t \to F_t^{\text{img}}$，当前帧渲染图像 $\hat{I}_t \to F_t^{\text{ren}}$（用当前高斯地图从当前视角渲染），滑窗内历史帧原始图像 $\{I_{t-k}\} \to \{F_{t-k}^{\text{img}}\}$，以及历史帧渲染图像 $\{\hat{I}_{t-k}\} \to \{F_{t-k}^{\text{ren}}\}$（用当前高斯地图从历史视角渲染）。渲染图像的引入使网络能感知当前地图在该位置的重建状态，渲染特征与原始特征的差异隐式指示了该区域的重建不足程度。
+特征提取模块沿用 pixelSplat 的 backbone 设计，并在训练过程中保持冻结。该共享 backbone 对四类图像分别提取特征图：当前帧原始图像 $I_t \to F_t^{\text{img}}$，当前帧渲染图像 $\hat{I}_t \to F_t^{\text{ren}}$（用当前高斯地图从当前视角渲染），滑窗内历史帧原始图像 $\{I_{t-k}\} \to \{F_{t-k}^{\text{img}}\}$，以及历史帧渲染图像 $\{\hat{I}_{t-k}\} \to \{F_{t-k}^{\text{ren}}\}$（用当前高斯地图从历史视角渲染）。渲染图像的引入使网络能感知当前地图在该位置的重建状态，渲染特征与原始特征的差异隐式指示了该区域的重建不足程度。
 
 在当前帧特征采样阶段，对每个候选点，以其像素坐标 $\mathbf{u}_i$ 在 $F_t^{\text{img}}$ 和 $F_t^{\text{ren}}$ 上进行双线性插值采样，得到逐点特征 $\mathbf{f}_i^{\text{curr}} \in \mathbb{R}^{D}$ 和 $\mathbf{f}_i^{\text{ren}} \in \mathbb{R}^{D}$，同时计算当前帧下的归一化观察方向 $\mathbf{d}_i^{\text{curr}} = \text{normalize}(R_{\text{cw}} \boldsymbol{\mu}_i + \mathbf{t}_{\text{cw}})$。
 
