@@ -10,19 +10,17 @@
 \input{table.tex}
 
 \subsection{实验设置}
-我们主要从三方面验证所提方法的有效性：其一，在公开 R3LIVE（Avia）数据集上与现有增量式高斯建图方法进行定量与定性对比；其二，在 MCD（OS1-64）数据集上评估方法在不同激光雷达配置下的泛化能力；其三，在我们的自建东南大学四牌楼校区数据集（Avia）上进一步验证该方法在真实新场景中的适用性。对于新视角渲染质量，我们采用 PSNR、SSIM 和 LPIPS 作为评价指标。除特别说明外，所有方法均在相同数据划分下进行评测，序列中的非训练帧用于序列内新视角评估。
+我们主要从两方面验证所提方法的有效性：其一，在公开 R3LIVE（Avia）数据集、MCD（OS1-64）数据集及我们在东南大学四牌楼校区（Avia）的自建数据集上与现有增量式高斯建图方法进行渲染质量的定量与定性对比；其二，在 \texttt{hku\_campus\_seq\_00} 上开展前馈回归器的消融分析，重点考察其对新高斯初始化质量与有限优化预算下早期收敛行为的影响。对于新视角渲染质量，我们采用 PSNR、SSIM 和 LPIPS 作为评价指标。所有方法均在相同数据划分下进行评测，序列中的非训练帧用于序列内新视角评估。
 
 所有实验均在统一硬件与软件环境下完成系统部署、网络训练以及新场景测试评估。实验平台采用 Ubuntu 20.04（Python 3.8）环境，基于 PyTorch 2.0.0 与 CUDA 11.8 实现。硬件配置为单张 RTX 4090D（24GB）GPU、16 vCPU Intel(R) Xeon(R) Platinum 8481C 处理器以及 80GB 系统内存。
 
-前馈回归网络的训练数据来自 R3LIVE 的 \texttt{hku\_campus\_seq\_02}、\texttt{hku\_campus\_seq\_03}、\texttt{hkust\_campus\_seq\_02}、\texttt{hkust\_campus\_seq\_03} 以及我们的自建数据集 \texttt{seu\_campus\_seq\_02}、\texttt{seu\_campus\_seq\_03}。训练采用 Adam 优化器，batch size 设为 8192（逐点级），并配合梯度裁剪以保证训练稳定。学习率统一设置为 $5\times10^{-4}$，训练总计 150 个 epoch。损失项权重设置为 $\lambda_{\text{scale}}=1.0$、$\lambda_{\text{rot}}=1.0$、$\lambda_{\text{dc}}=1.0$、$\lambda_{\text{rest}}=0.1$、$\lambda_{\text{opac}}=1.0$；尺度恢复中使用的相机焦距参数固定为 $431.7103$。
+前馈回归网络的训练数据来自 R3LIVE 的 \texttt{hku\_campus\_seq\_02}、\texttt{hku\_campus\_seq\_03}、\texttt{hkust\_campus\_seq\_02}、\texttt{hkust\_campus\_seq\_03} 以及我们的自建数据集 \texttt{seu\_campus\_seq\_02}、\texttt{seu\_campus\_seq\_03}。训练采用 Adam 优化器，batch size 设为 8192（逐点级），并配合梯度裁剪以保证训练稳定。学习率统一设置为 $5\times10^{-4}$，训练总计 150 个 epoch。损失项权重设置为 $\lambda_{\text{scale}}=1.0$、$\lambda_{\text{rot}}=1.0$、$\lambda_{\text{dc}}=1.0$、$\lambda_{\text{rest}}=0.1$、$\lambda_{\text{opac}}=1.0$。上下文窗口大小被设置为15。
 
-对比方法包括 MonoGS、MM3DGS-SLAM、Gaussian-LIC-2。需要说明的是，这部分实验主要研究高斯地图后端的表示与插入机制，因此关注点主要放在地图渲染质量与新高斯的收敛效率上。
+对比方法包括 MonoGS、MM3DGS-SLAM、Gaussian-LIC-2。其中，由于 Gaussian-LIC-2 未开源完整版本，因此在 R3LIVE 和 MCD 数据集上的基线方法数据来自 Gaussian-LIC-2 论文；在我们的自建数据集上以及定性渲染图片对比中，MonoGS 被设置为纯视觉模式；MM3DGS-SLAM被设置为 RGB-D 模式，我们通过将lidar点投影到图像上形成伪 RGB-D 数据；我们使用 2026.2.21 开源的 Gaussian-LIC-2。
 
 \subsection{与现有方法的对比}
 
-表~\ref{tab:r3live_rendering} 给出了 R3LIVE（Avia）、MCD（OS1-64）以及自建数据集上的定量结果。对于 R3LIVE（Avia）部分，可以看到本文方法在全部 6 个测试序列上均取得了最优的渲染指标。与当前最接近的基线 Gaussian-LIC-2 相比，本文方法在这 6 个序列上的平均提升达到 \textbf{1.28 dB} PSNR、\textbf{0.041} SSIM，并将 LPIPS 平均降低 \textbf{0.030}。其中，在更具挑战性的 \texttt{hku\_campus\_01} 序列上，PSNR 提升达到 \textbf{2.63 dB}，说明所提出的上下文感知前馈插入策略在困难视角与退化区域中能够提供更可靠的新高斯初始化。对于 MCD（OS1-64）部分，本文方法在 3 个序列上的平均 PSNR 和 SSIM 相比 Gaussian-LIC-2 分别进一步提升约 \textbf{0.29 dB} 和 \textbf{0.007}，同时 LPIPS 略有下降，表明该方法在不同传感器配置与校园场景中同样具有稳定的泛化能力。在自建数据集上，这一趋势同样成立：在 \texttt{seu\_campus\_seq\_00} 与 \texttt{seu\_campus\_seq\_01} 上，本文方法相较 Gaussian-LIC-2 分别将 PSNR 从 23.97 提升到 \textbf{25.55}、从 22.76 提升到 \textbf{24.56}，将 SSIM 从 0.769 提升到 \textbf{0.830}、从 0.711 提升到 \textbf{0.797}，并将 LPIPS 从 0.215 降低到 \textbf{0.145}、从 0.195 降低到 \textbf{0.161}。平均来看，PSNR 提升约 \textbf{1.69 dB}，SSIM 提升约 \textbf{0.074}，LPIPS 降低约 \textbf{0.052}，说明该方法不仅在公开基准上有效，也能够迁移到我们采集的真实校园场景中。
-
-从不同方法的表现来看，纯视觉的 MonoGS 在大尺度室外与退化场景中容易出现明显的模糊、漂浮和结构崩塌，这说明仅依赖后续优化来修正不准确初始化是十分困难的。引入 LiDAR 几何先验后，Gaussian-LIC-2 的整体结果已有明显提升，但其新高斯属性仍主要依赖规则设计，因而在高亮区域、边界区域和未充分观测区域中依然存在拖影、过度平滑或局部失真。相比之下，本文方法利用当前帧与历史帧的图像--渲染上下文，能够在插入时为 surfel 提供更接近收敛状态的属性初始化，因此在后续少量优化下即可获得更稳定的外观与更清晰的结构。
+表~\ref{tab:r3live_rendering} 给出了 R3LIVE（Avia）、MCD（OS1-64）以及自建数据集上的定量结果，以看到本文方法几乎在全部测试序列上取得了最优的渲染指标。从不同方法的表现来看，纯视觉的 MonoGS 在大尺度室外与退化场景中容易出现明显的模糊、漂浮和结构崩塌，这说明仅依赖后续优化来修正不准确初始化是十分困难的；使用伪 RGB-D数据的 MM3DGS-SLAM 拥有更好的效果，但是其各向同性和视角无关的高斯分布在有限的优化次数下表现不佳；使用 SPNet 补点策略后，Gaussian-LIC-2 成功重建了 LiDAR 从未扫描的区域，整体结果已有明显提升，但其新高斯属性仍主要依赖规则设计，因而在有限的优化次数下，高亮区域、边界区域和未充分观测区域中依然存在拖影、过度平滑或局部失真。相比之下，本文方法利用当前帧与历史帧的图像--渲染上下文，能够在插入时为 surfel 提供更接近收敛状态的属性初始化，因此在后续少量优化下即可获得更稳定的外观与更清晰的结构。
 
 \begin{figure*}[t]
 \centering

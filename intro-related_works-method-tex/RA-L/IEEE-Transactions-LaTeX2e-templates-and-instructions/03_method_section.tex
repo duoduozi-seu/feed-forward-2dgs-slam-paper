@@ -39,7 +39,7 @@ f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
 
 其中输出分别对应 surfel 的二维尺度、旋转、不透明度以及 SH 颜色参数。
 
-\methodlead{1) 上下文特征输入 $\mathbf{ctx}$：}回归器的第一部分输入是逐点对齐的上下文特征输入 $\mathbf{ctx}_i$。与 pixelSplat、MVSplat 等需要同时从图像中恢复几何与高斯属性的离线纯视觉方法不同，本文的候选点位置已经由 LiDAR 与深度先验确定，因此网络不再负责隐式恢复位置，而是围绕每个候选点构造与之严格对齐的多视图上下文。
+\methodlead{1) 上下文特征输入 $\mathbf{ctx}$：}回归器的第一部分输入是逐点对齐的上下文特征输入 $\mathbf{ctx}_i$。这里的 $\mathbf{ctx}_i$ 特指注意力聚合前的上下文观测集合。与 pixelSplat、MVSplat 等需要同时从图像中恢复几何与高斯属性的离线纯视觉方法不同，本文的候选点位置已经由 LiDAR 与深度先验确定，因此网络不再负责隐式恢复位置，而是围绕每个候选点构造与之严格对齐的多视图上下文。
 
 \methodlead{a) 逐点特征获取：}特征提取模块沿用 pixelSplat 的 backbone 设计，并在训练过程中保持冻结。该共享 backbone 对四类图像分别提取特征图：当前帧原始图像 $I_t \to F_t^{\text{img}}$，当前帧渲染图像 $\hat{I}_t \to F_t^{\text{ren}}$（由当前高斯地图从当前视角渲染），以及滑窗内历史关键帧的原始图像 $\{I_{t-k}\} \to \{F_{t-k}^{\text{img}}\}$ 与历史渲染图像 $\{\hat{I}_{t-k}\} \to \{F_{t-k}^{\text{ren}}\}$。其中，渲染图像的引入使网络能够显式感知当前地图在该位置的重建状态，原始图像与渲染图像之间的差异则隐式反映了该区域的重建不足程度。
 
@@ -69,9 +69,9 @@ M_{i,k} =
 \end{cases}
 \end{equation}
 
-也即，仅当候选点在对应历史视角下可见时，该视角的键值对才参与注意力计算；不可见视角的注意力得分在 softmax 前被置为 $-\infty$，从而完全排除其贡献。这样，网络能够在多视图观测不完整的情况下自适应地关注真正提供补充信息的历史视角。最终，系统将当前帧原始特征、当前帧渲染特征和聚合后的历史上下文拼接为点 $i$ 的上下文输入：
+可见，仅当候选点在对应历史视角下可见时，该视角的键值对才参与注意力计算；不可见视角的注意力得分在 softmax 前被置为 $-\infty$，从而完全排除其贡献。这样，网络能够在多视图观测不完整的情况下自适应地关注真正提供补充信息的历史视角。注意力聚合完成后，系统将当前帧原始特征、当前帧渲染特征和聚合后的历史上下文拼接，得到送入编码器的上下文特征
 \begin{equation}
-\mathbf{ctx}_i = [\mathbf{f}_i^{\text{curr}} \| \mathbf{f}_i^{\text{ren}} \| \mathbf{ctx}_i^{\text{attn}}].
+\hat{\mathbf{ctx}}_i = [\mathbf{f}_i^{\text{curr}} \| \mathbf{f}_i^{\text{ren}} \| \mathbf{ctx}_i^{\text{attn}}].
 \end{equation}
 
 \methodlead{2) 几何先验输入 $\mathbf{g}$：}回归器的第二部分输入是几何先验输入 $\mathbf{g}_i$。它由逆深度、DA3 提供的相机空间法线、有效性掩码和 KNN 像素间距拼接得到：
@@ -90,9 +90,9 @@ M_{i,k} =
 [\gamma(\bar{z}_i^{-1}) \| \gamma(\mathbf{n}_i^{\text{cam}}) \| m_i \| \gamma(\log d_i^{\text{nn}})].
 \end{equation}
 
-\methodlead{3) 回归器编码器：}在获得上下文特征输入 $\mathbf{ctx}$ 与几何先验输入 $\mathbf{g}$ 后，系统将二者拼接为最终网络输入：
+\methodlead{3) 回归器编码器：}在获得送入编码器的上下文特征 $\hat{\mathbf{ctx}}$ 与几何先验输入 $\mathbf{g}$ 后，系统将二者拼接为最终网络输入：
 \begin{equation}
-\mathbf{x}_i = [\mathbf{ctx}_i \| \tilde{\mathbf{g}}_i].
+\mathbf{x}_i = [\hat{\mathbf{ctx}}_i \| \tilde{\mathbf{g}}_i].
 \end{equation}
 
 编码器由一层 $544 \to 512$ 的线性投影和 4 个 pre-activation 残差块组成，输出 512 维隐变量 $\mathbf{h}_i$。
