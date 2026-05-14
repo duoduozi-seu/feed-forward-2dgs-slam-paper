@@ -27,7 +27,23 @@
 
 需要指出的是，DA3 法线计算前置于前馈回归网络——法线先验首先由 DA3 独立计算完成，随后作为输入传入前馈网络，网络在此基础上进行微量修正和完整旋转构造（详见 III-D.4 节）。
 
+% 系统流程图放在前馈高斯回归网络小节前，便于双栏模板将其排到该页顶端。
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{../../system-pipeline.pdf}
+    \caption{系统整体流程。(A) 外部 LiDAR-惯导-视觉前端提供同步的 RGB 图像、LiDAR 观测、IMU 信息和相机位姿。(B) 系统利用 SPNet 深度补全和 DA3 法线估计生成稠密几何先验，并与 LiDAR 点共同形成欠重建区域的初始点。(C) 对于每个候选点，前馈高斯回归器聚合逐点对齐的多视图上下文，直接预测完整的 2DGS surfel 属性。(D) 预测得到的新 surfel 被插入增量地图后，再结合在线优化进一步更新；同时，当前地图的渲染结果继续作为后续插点的上下文输入。}
+    \label{fig:system_pipeline}
+\end{figure*}
+
 \subsection{前馈高斯回归网络}
+
+% 网络结构图跟随前馈高斯回归网络小节进入浮动队列，并保持在系统流程图之后编号。
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth,height=0.34\textheight,keepaspectratio]{../../net-pipeline.pdf}
+    \caption{上下文感知前馈高斯回归器结构。网络首先在滑动窗口内对有效候选种子构造逐点对齐的上下文，并通过冻结的共享主干提取当前帧与历史帧的图像-渲染特征；随后，跨注意力模块汇聚多视图外观信息，并与逆深度、DA3 法线和位置编码等几何先验一起输入残差 MLP 编码器；最后，多头约束解码器预测完整的 2DGS surfel 属性 $(\mu, s, \alpha, c, q)$，其中法线引导的旋转分支通过 Gram-Schmidt 正交化构造几何一致的朝向。}
+    \label{fig:net-pipeline}
+\end{figure*}
 
 与 MVSplat 一类直接从多视图图像恢复高斯参数的方法不同，本文关注的是在候选点已经由上游几何模块确定的条件下，学习从上下文特征输入 $\mathbf{ctx}$ 与几何先验输入 $\mathbf{g}$ 到 surfel 参数的映射。对于当前关键帧筛选得到的 $N_t$ 个候选点，记 $\mathbf{ctx}_i$ 为点 $i$ 的上下文特征输入，$\mathbf{g}_i$ 为其几何先验输入，则前馈网络的目标可写为：
 
@@ -39,65 +55,22 @@ f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
 
 其中输出分别对应 surfel 的二维尺度、旋转、不透明度以及 SH 颜色参数。
 
-\methodlead{1) 上下文特征输入 $\mathbf{ctx}$：}回归器的第一部分输入是逐点对齐的上下文特征输入 $\mathbf{ctx}_i$。这里的 $\mathbf{ctx}_i$ 特指注意力聚合前的上下文观测集合。与 pixelSplat、MVSplat 等需要同时从图像中恢复几何与高斯属性的离线纯视觉方法不同，本文的候选点位置已经由 LiDAR 与深度先验确定，因此网络不再负责隐式恢复位置，而是围绕每个候选点构造与之严格对齐的多视图上下文。
-
-\methodlead{a) 逐点特征获取：}特征提取模块沿用 pixelSplat 的 backbone 设计，并在训练过程中保持冻结。该共享 backbone 对四类图像分别提取特征图：当前帧原始图像 $I_t \to F_t^{\text{img}}$，当前帧渲染图像 $\hat{I}_t \to F_t^{\text{ren}}$（由当前高斯地图从当前视角渲染），以及滑窗内历史关键帧的原始图像 $\{I_{t-k}\} \to \{F_{t-k}^{\text{img}}\}$ 与历史渲染图像 $\{\hat{I}_{t-k}\} \to \{F_{t-k}^{\text{ren}}\}$。其中，渲染图像的引入使网络能够显式感知当前地图在该位置的重建状态，原始图像与渲染图像之间的差异则隐式反映了该区域的重建不足程度。
-
-对每个候选点，系统首先以其当前帧像素坐标 $\mathbf{u}_i$ 在 $F_t^{\text{img}}$ 与 $F_t^{\text{ren}}$ 上进行双线性插值采样，得到当前帧逐点特征 $\mathbf{f}_i^{\text{curr}} \in \mathbb{R}^{D}$ 和 $\mathbf{f}_i^{\text{ren}} \in \mathbb{R}^{D}$。同时，系统计算当前帧下的归一化观察方向
-\begin{equation}
-\mathbf{d}_i^{\text{curr}} = \text{normalize}(R_{\text{cw}} \boldsymbol{\mu}_i + \mathbf{t}_{\text{cw}}).
-\end{equation}
-
-随后，对共视窗口内的 $W$ 帧历史关键帧，逐帧将候选点世界坐标投影到对应图像平面，并进行可见性判断（正向深度且落在图像范围内）。在可见像素位置上，分别从 $F_{t-k}^{\text{img}}$ 和 $F_{t-k}^{\text{ren}}$ 中采样，得到逐点历史特征 $\mathbf{f}_i^{\text{hist}} \in \mathbb{R}^{W \times D}$、历史渲染特征 $\mathbf{f}_i^{\text{hist\_ren}} \in \mathbb{R}^{W \times D}$ 以及逐历史帧的可见性指示向量 $\mathbf{m}_i^{\text{hist}} \in \{0,1\}^{W}$。其中，若点 $i$ 在第 $k$ 个历史视角下可见，则 $m_{i,k}^{\text{hist}} = 1$，否则 $m_{i,k}^{\text{hist}} = 0$。同时计算每个历史视角的观察方向，并统一到当前帧坐标系中表达：
-\begin{equation}
-\mathbf{d}_{i,k}^{\text{hist}} = \text{normalize}(R_{\text{cw}}^t (\boldsymbol{\mu}_i - \mathbf{c}_{t-k})),
-\end{equation}
-其中 $\mathbf{c}_{t-k}$ 为历史帧相机中心。
-
-\methodlead{b) 上下文注意力聚合：}为将可变长度的历史观测压缩为固定维度的时序上下文，系统使用跨注意力模块对历史特征进行聚合。查询向量 $\mathbf{q}_i$ 由当前帧观察方向、当前帧原始特征和渲染特征拼接后经线性投影得到；键和值向量 $\mathbf{k}_{i,k}$、$\mathbf{v}_{i,k}$ 则由历史帧对应的观察方向、原始特征和渲染特征构造。带可见性掩码的缩放点积注意力写为：
+\methodlead{1) 上下文特征输入 $\mathbf{ctx}$：}与 pixelSplat、MVSplat 等需要同时恢复几何与外观的离线方法不同，本文候选点位置已由上游几何模块确定，网络只需围绕每个候选点构造逐点对齐的多视图上下文。共享 backbone（沿用 pixelSplat 设计，训练时冻结）分别对当前帧原始图像、当前帧渲染图像以及滑窗内 $W$ 帧历史关键帧的原始与渲染图像提取特征图。其中渲染图像使网络能显式感知当前地图的重建状态，其与原始图像的差异隐式反映欠重建程度。对每个候选点，系统以其像素坐标在上述特征图上双线性插值采样，并计算归一化观察方向，得到当前帧逐点特征 $\mathbf{f}_i^{\text{curr}}, \mathbf{f}_i^{\text{ren}} \in \mathbb{R}^{D}$ 及历史帧特征 $\mathbf{f}_i^{\text{hist}} \in \mathbb{R}^{W \times D}$；不可见的历史视角由可见性掩码 $\mathbf{m}_i^{\text{hist}} \in \{0,1\}^{W}$ 标记。随后，系统使用跨注意力模块将可变长度的历史观测压缩为固定维度的时序上下文，其中不可见视角在 softmax 前以 $-\infty$ 掩码排除：
 
 \begin{equation}
 \mathbf{ctx}_i^{\text{attn}} = \text{softmax}\!\left(\frac{\mathbf{q}_i \mathbf{K}_i^\top}{\sqrt{d_k}} + \mathbf{M}_i\right) \mathbf{V}_i
 \end{equation}
 
-其中 $d_k = 64$，$\mathbf{M}_i \in \mathbb{R}^{1 \times W}$ 是由可见性向量 $\mathbf{m}_i^{\text{hist}}$ 派生得到的加性注意力掩码，其第 $k$ 个元素定义为
-\begin{equation}
-M_{i,k} =
-\begin{cases}
-0, & m_{i,k}^{\text{hist}} = 1, \\
--\infty, & m_{i,k}^{\text{hist}} = 0.
-\end{cases}
-\end{equation}
+\noindent 聚合完成后，当前帧原始特征、渲染特征与 $\mathbf{ctx}_i^{\text{attn}}$ 拼接，构成送入编码器的上下文特征 $\hat{\mathbf{ctx}}_i$。
 
-可见，仅当候选点在对应历史视角下可见时，该视角的键值对才参与注意力计算；不可见视角的注意力得分在 softmax 前被置为 $-\infty$，从而完全排除其贡献。这样，网络能够在多视图观测不完整的情况下自适应地关注真正提供补充信息的历史视角。注意力聚合完成后，系统将当前帧原始特征、当前帧渲染特征和聚合后的历史上下文拼接，得到送入编码器的上下文特征
-\begin{equation}
-\hat{\mathbf{ctx}}_i = [\mathbf{f}_i^{\text{curr}} \| \mathbf{f}_i^{\text{ren}} \| \mathbf{ctx}_i^{\text{attn}}].
-\end{equation}
-
-\methodlead{2) 几何先验输入 $\mathbf{g}$：}回归器的第二部分输入是几何先验输入 $\mathbf{g}_i$。它由逆深度、DA3 提供的相机空间法线、有效性掩码和 KNN 像素间距拼接得到：
+\methodlead{2) 几何先验输入 $\mathbf{g}$：}几何先验输入由逆深度、DA3 相机空间法线、有效性掩码和 KNN 像素间距拼接得到：
 \begin{equation}
 \mathbf{g}_i = [\bar{z}_i^{-1} \| \mathbf{n}_i^{\text{cam}} \| m_i \| d_i^{\text{nn}}].
 \end{equation}
 
-其中，$\bar{z}_i^{-1}$ 提供尺度恢复所需的深度信息，$\mathbf{n}_i^{\text{cam}}$ 提供 surfel 朝向的法线锚点，$m_i$ 表示该点几何先验是否有效，$d_i^{\text{nn}}$ 则刻画局部采样密度。为了增强网络对连续几何变量的表达能力，在进入编码器之前，逆深度、法线和像素间距分别经过 NeRF 风格的位置编码（频带数分别为 4、2、3），而掩码 $m_i$ 保持原值。位置编码函数写为
-\begin{equation}
-\gamma(v) = [v, \sin(2^0 \pi v), \cos(2^0 \pi v), \ldots, \sin(2^{L-1} \pi v), \cos(2^{L-1} \pi v)].
-\end{equation}
+\noindent 其中 $\bar{z}_i^{-1}$ 提供尺度恢复所需的深度信息，$\mathbf{n}_i^{\text{cam}}$ 为 surfel 朝向的法线锚点，$m_i$ 标记几何先验是否有效，$d_i^{\text{nn}}$ 刻画局部采样密度。各连续分量经 NeRF 风格位置编码后与 $\hat{\mathbf{ctx}}_i$ 拼接，送入由一层线性投影和 4 个 pre-activation 残差块构成的编码器，输出 512 维隐变量 $\mathbf{h}_i$。
 
-编码后的几何输入记为
-\begin{equation}
-\tilde{\mathbf{g}}_i =
-[\gamma(\bar{z}_i^{-1}) \| \gamma(\mathbf{n}_i^{\text{cam}}) \| m_i \| \gamma(\log d_i^{\text{nn}})].
-\end{equation}
-
-\methodlead{3) 回归器编码器：}在获得送入编码器的上下文特征 $\hat{\mathbf{ctx}}$ 与几何先验输入 $\mathbf{g}$ 后，系统将二者拼接为最终网络输入：
-\begin{equation}
-\mathbf{x}_i = [\hat{\mathbf{ctx}}_i \| \tilde{\mathbf{g}}_i].
-\end{equation}
-
-编码器由一层 $544 \to 512$ 的线性投影和 4 个 pre-activation 残差块组成，输出 512 维隐变量 $\mathbf{h}_i$。
-
-\methodlead{4) 回归器解码器：}在共享隐变量 $\mathbf{h}_i$ 的基础上，系统使用多个独立预测头以 $\text{Linear} \to \text{ReLU} \to \text{Linear}$ 的形式回归不同属性。各头输出并不直接作为最终高斯参数，而是结合上游几何先验进行约束解码，从而使预测结果更稳定地锚定在已有几何信息上。
+\methodlead{3) 回归器解码器：}在共享隐变量 $\mathbf{h}_i$ 的基础上，系统使用多个独立预测头以 $\text{Linear} \to \text{ReLU} \to \text{Linear}$ 的形式回归不同属性。各头输出并不直接作为最终高斯参数，而是结合上游几何先验进行约束解码，从而使预测结果更稳定地锚定在已有几何信息上。
 
 \methodlead{a) 法线引导的旋转解码：}系统不直接回归四元数，而是以 DA3 提供的相机空间法线 $\mathbf{n}_i^{\text{cam}}$ 为锚点，由网络预测修正量，并通过正交化过程构造完整旋转。网络首先预测法线修正向量 $\delta \mathbf{z}_i \in \mathbb{R}^3$、混合强度 $\lambda_i = \text{softplus}(\cdot) \in \mathbb{R}_{>0}$ 以及辅助向量 $\mathbf{a}_i \in \mathbb{R}^3$，进而得到修正后的法线方向：
 
@@ -129,11 +102,7 @@ M_{i,k} =
 \end{equation}
 高阶 SH 系数则由独立头直接预测。该残差设计使网络能够从合理的颜色先验出发，仅学习局部修正量。
 
-\methodlead{d) 不透明度解码：}不透明度头输出经 sigmoid 激活后的真实不透明度
-\begin{equation}
-\alpha_i = \sigma(\text{head}(\mathbf{h}_i)),
-\end{equation}
-随后再转为 logit 空间存储。
+\methodlead{d) 不透明度解码：}不透明度头经 sigmoid 激活输出 $\alpha_i \in (0,1)$，随后转为 logit 空间存储。
 
 \subsection{自蒸馏训练}
 
