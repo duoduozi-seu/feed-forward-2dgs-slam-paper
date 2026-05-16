@@ -16,7 +16,7 @@
 
 前馈回归网络的训练数据来自 R3LIVE 的 \texttt{hku\_campus\_seq\_02}、\texttt{hku\_campus\_seq\_03}、\texttt{hkust\_campus\_seq\_02}、\texttt{hkust\_campus\_seq\_03} 以及我们的自建数据集 \texttt{seu\_campus\_seq\_02}、\texttt{seu\_campus\_seq\_03}。训练采用 Adam 优化器，batch size 设为 8192（逐点级），并配合梯度裁剪以保证训练稳定。学习率统一设置为 $5\times10^{-4}$，训练总计 150 个 epoch。损失项权重设置为 $\lambda_{\text{scale}}=1.0$、$\lambda_{\text{rot}}=1.0$、$\lambda_{\text{dc}}=1.0$、$\lambda_{\text{rest}}=0.1$、$\lambda_{\text{opac}}=1.0$。上下文窗口大小被设置为15。
 
-对比方法包括 MonoGS、MM3DGS-SLAM、Gaussian-LIC-2。其中，由于 Gaussian-LIC-2 未开源完整版本，因此在 R3LIVE 和 MCD 数据集上的基线方法数据来自 Gaussian-LIC-2 论文；在我们的自建数据集上以及定性渲染图片对比中，MonoGS 被设置为纯视觉模式；MM3DGS-SLAM被设置为 RGB-D 模式，我们通过将lidar点投影到图像上形成伪 RGB-D 数据；我们使用 2026.2.21 开源的 Gaussian-LIC-2。
+对比方法包括 MonoGS、MM3DGS-SLAM、Gaussian-LIC-2。在 R3LIVE 和 MCD 数据集上的基线方法数据来自 Gaussian-LIC-2 论文；在我们的自建数据集上以及定性渲染图片对比中，MonoGS 被设置为纯视觉模式；MM3DGS-SLAM被设置为 RGB-D 模式，我们通过将lidar点投影到图像上形成伪 RGB-D 数据；Gaussian-LIC-2 使用2026年2月开源版。
 
 \subsection{与现有方法的对比}
 
