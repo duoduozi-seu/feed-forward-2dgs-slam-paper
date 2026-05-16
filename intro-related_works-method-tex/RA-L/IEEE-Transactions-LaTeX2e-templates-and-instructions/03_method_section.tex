@@ -4,6 +4,15 @@
 % 2. 内容来源于 04_paper.md 的 Method 部分。
 % 3. 这里只做 Markdown 到 LaTeX 的语法迁移与公式环境适配。
 
+% 让系统流程图出现在 Method 标题所在页的页顶。
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{../../system-pipeline.pdf}
+    \caption{系统整体流程。(A) 外部 LiDAR-惯导-视觉前端提供同步的 RGB 图像、LiDAR 观测、IMU 信息和相机位姿。(B) 系统利用 SPNet 深度补全和 DA3 法线估计生成稠密几何先验，并与 LiDAR 点共同形成欠重建区域的初始点。(C) 对于每个候选点，前馈高斯回归器聚合逐点对齐的多视图上下文，直接预测完整的 2DGS surfel 属性。(D) 预测得到的新 surfel 被插入增量地图后，再结合在线优化进一步更新；同时，当前地图的渲染结果继续作为后续插点的上下文输入。}
+    \label{fig:system_pipeline}
+\end{figure*}
+
 \section{Method}
 
 % IEEEtran 的 \subsubsection/\paragraph 在期刊模板中会生成运行内标题。
@@ -26,14 +35,6 @@
 使用 DA3 对当前帧 RGB 图像推理输出相对深度图后，系统通过最小二乘仿射对齐将其与稀疏 LiDAR 深度配准，得到与真实尺度一致的稠密深度图，再以中心差分计算逐像素法线。按初始点的像素坐标在法线图上采样，得到每个初始点的相机空间法线 $\mathbf{n}_{\text{cam}} \in \mathbb{R}^3$。
 
 需要指出的是，DA3 法线计算前置于前馈回归网络——法线先验首先由 DA3 独立计算完成，随后作为输入传入前馈网络，网络在此基础上进行微量修正和完整旋转构造（详见 III-D.4 节）。
-
-% 系统流程图放在前馈高斯回归网络小节前，便于双栏模板将其排到该页顶端。
-\begin{figure*}[!t]
-    \centering
-    \includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{../../system-pipeline.pdf}
-    \caption{系统整体流程。(A) 外部 LiDAR-惯导-视觉前端提供同步的 RGB 图像、LiDAR 观测、IMU 信息和相机位姿。(B) 系统利用 SPNet 深度补全和 DA3 法线估计生成稠密几何先验，并与 LiDAR 点共同形成欠重建区域的初始点。(C) 对于每个候选点，前馈高斯回归器聚合逐点对齐的多视图上下文，直接预测完整的 2DGS surfel 属性。(D) 预测得到的新 surfel 被插入增量地图后，再结合在线优化进一步更新；同时，当前地图的渲染结果继续作为后续插点的上下文输入。}
-    \label{fig:system_pipeline}
-\end{figure*}
 
 \subsection{前馈高斯回归网络}
 
