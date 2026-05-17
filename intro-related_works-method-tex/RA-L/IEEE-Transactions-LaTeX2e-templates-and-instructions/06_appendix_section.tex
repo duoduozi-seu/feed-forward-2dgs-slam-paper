@@ -1,57 +1,63 @@
-% 附录章节
+% 合并可视化图章节
 % 说明：
 % 1. 本文件设计为被主文档 \input{} 进来使用。
-% 2. 这里专门放置正文中移出的图 5 和图 6，保持正文主体更紧凑。
-% 3. 标题由主文档中的 \appendix 统一控制，避免重复显示“附录”。
+% 2. 这里将原图 5 和图 6 合并为一个跨栏图 5，避免重复说明同一件事。
+% 3. 这里使用 cuted 宏包提供的 strip 环境，将合并后的图作为非浮动跨栏内容直接放在页顶。
 
-\begin{figure*}[t]
-\centering
-\setlength{\tabcolsep}{2pt}
-\begin{tabular}{cccc}
-& \small 0 次优化 & \small 4 次优化 & \small 8 次优化 \\
-\rotatebox{90}{Baseline} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0004/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0004/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0004/times_0008.jpg} \\
-\rotatebox{90}{Ours} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0004/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0004/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0004/times_0008.jpg} \\
-\rotatebox{90}{Baseline} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0084/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0084/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0084/times_0008.jpg} \\
-\rotatebox{90}{Ours} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0084/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0084/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0084/times_0008.jpg} \\
-\end{tabular}
-\caption{前馈回归器消融的可视化结果（I）。展示 \texttt{hku\_campus\_00} 中代表帧 \texttt{train\_0004} 与 \texttt{train\_0084} 在 0、4、8 次局部优化后的渲染结果。对于每个代表帧，上两行为 Baseline，下两行为 Ours。}
-\label{fig:ablation_visual_1}
-\end{figure*}
+% 统一控制合并图的单张小图宽度，后续如果需要给参考文献留更多空间，只需要略微调小该值。
+\newcommand{\appendixablimg}[1]{\includegraphics[width=0.144\textwidth]{#1}}
 
-\begin{figure*}[t]
-\centering
-\setlength{\tabcolsep}{2pt}
-\begin{tabular}{cccc}
-& \small 0 次优化 & \small 4 次优化 & \small 8 次优化 \\
-\rotatebox{90}{Baseline} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0609/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0609/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0609/times_0008.jpg} \\
-\rotatebox{90}{Ours} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0609/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0609/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0609/times_0008.jpg} \\
-\rotatebox{90}{Baseline} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0784/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0784/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/baseline/train_0784/times_0008.jpg} \\
-\rotatebox{90}{Ours} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0784/times_0000.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0784/times_0004.jpg} &
-\includegraphics[width=0.30\textwidth]{../../../images/self_compare/ours/train_0784/times_0008.jpg} \\
+% 手动生成跨栏区内的图题，避免 figure* 浮动体把图推到下一页。
+\newcommand{\appendixablcaption}[2]{%
+    \refstepcounter{figure}\label{#1}%
+    \vspace{0.1em}%
+    \parbox{0.98\textwidth}{\footnotesize 图~\thefigure. #2}%
+}
+
+\begin{strip}
+\begin{center}
+\vspace{-4.2em}
+{\scriptsize
+\setlength{\tabcolsep}{1pt}
+\renewcommand{\arraystretch}{0.82}
+\begin{tabular}{@{}c@{\hspace{2pt}}ccc@{\hspace{5pt}}ccc@{}}
+& \multicolumn{3}{c}{Baseline} & \multicolumn{3}{c}{Ours} \\
+\texttt{frame} & 0 次 & 4 次 & 8 次 & 0 次 & 4 次 & 8 次 \\
+\texttt{0004} &
+\appendixablimg{../../../images/self_compare/baseline/train_0004/times_0000.jpg} &
+\appendixablimg{../../../images/self_compare/baseline/train_0004/times_0004.jpg} &
+\appendixablimg{../../../images/self_compare/baseline/train_0004/times_0008.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0004/times_0000.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0004/times_0004.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0004/times_0008.jpg} \\
+\texttt{0084} &
+\appendixablimg{../../../images/self_compare/baseline/train_0084/times_0000.jpg} &
+\appendixablimg{../../../images/self_compare/baseline/train_0084/times_0004.jpg} &
+\appendixablimg{../../../images/self_compare/baseline/train_0084/times_0008.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0084/times_0000.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0084/times_0004.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0084/times_0008.jpg} \\
+\texttt{0609} &
+\appendixablimg{../../../images/self_compare/baseline/train_0609/times_0000.jpg} &
+\appendixablimg{../../../images/self_compare/baseline/train_0609/times_0004.jpg} &
+\appendixablimg{../../../images/self_compare/baseline/train_0609/times_0008.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0609/times_0000.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0609/times_0004.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0609/times_0008.jpg} \\
+\texttt{0784} &
+\appendixablimg{../../../images/self_compare/baseline/train_0784/times_0000.jpg} &
+\appendixablimg{../../../images/self_compare/baseline/train_0784/times_0004.jpg} &
+\appendixablimg{../../../images/self_compare/baseline/train_0784/times_0008.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0784/times_0000.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0784/times_0004.jpg} &
+\appendixablimg{../../../images/self_compare/ours/train_0784/times_0008.jpg} \\
 \end{tabular}
-\caption{前馈回归器消融的可视化结果（II）。展示代表帧 \texttt{train\_0609} 与 \texttt{train\_0784} 在不同局部优化次数下的对比结果。与图~\ref{fig:ablation_visual_1} 一致，该图用于补充说明前馈初始化对后续早期收敛的影响。}
-\label{fig:ablation_visual_2}
-\end{figure*}
+}
+\par
+\appendixablcaption{fig:ablation_visual}{前馈回归器消融的可视化结果。展示代表帧 \texttt{train\_0004}、\texttt{train\_0084}、\texttt{train\_0609} 与 \texttt{train\_0784} 在 0、4、8 次局部优化后的结果；每行左三列为 Baseline，右三列为 Ours。}
+\vspace{0.4em}
+\end{center}
+\end{strip}
+
+% 参考文献标题先占位，当前版本不放置任何实际引用条目。
+\section*{References}

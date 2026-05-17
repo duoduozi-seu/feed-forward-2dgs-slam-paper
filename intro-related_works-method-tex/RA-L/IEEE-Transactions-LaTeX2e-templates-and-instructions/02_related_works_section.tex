@@ -3,6 +3,23 @@
 % 1. 本文件设计为被主文档 \input{} 进来使用。
 % 2. 内容来源于 04_paper.md 的 Related Works 部分。
 % 3. 这里只做 Markdown 到 LaTeX 的语法迁移，不改写正文内容。
+%
+% 排版说明：
+% 1. 用户希望系统整体流程图出现在 Related Works 所在页的页顶，
+%    并与“在在线建图方面……”这一段形成同页的上下对应关系。
+% 2. 由于 IEEE 双栏模板中的 figure* 往往只能稳定浮到后续页页顶，
+%    这里使用 afterpage 将该双栏图预约到当前页结束后的下一页页顶。
+% 3. 流程图本体仍保留原有标题、标签与尺寸，只调整其浮动触发位置，
+%    以尽量减少对正文内容和编号的影响。
+
+\afterpage{%
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{../../system-pipeline.pdf}
+    \caption{系统整体流程。(A) 外部 LiDAR-惯导-视觉前端提供同步的 RGB 图像、LiDAR 观测、IMU 信息和相机位姿。(B) 系统利用 SPNet 深度补全和 DA3 法线估计生成稠密几何先验，并与 LiDAR 点共同形成欠重建区域的初始点。(C) 对于每个候选点，前馈高斯回归器聚合逐点对齐的多视图上下文，直接预测完整的 2DGS surfel 属性。(D) 预测得到的新 surfel 被插入增量地图后，再结合在线优化进一步更新；同时，当前地图的渲染结果继续作为后续插点的上下文输入。}
+    \label{fig:system_pipeline}
+\end{figure*}
+}
 
 \section{Related Works}
 

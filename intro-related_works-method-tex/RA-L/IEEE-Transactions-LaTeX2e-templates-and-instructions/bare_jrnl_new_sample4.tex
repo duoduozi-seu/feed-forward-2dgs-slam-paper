@@ -14,6 +14,7 @@
 \usepackage{booktabs}
 \usepackage[table]{xcolor}
 \usepackage{afterpage}
+\usepackage{cuted}
 \hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
 
 \begin{document}
@@ -32,7 +33,8 @@
 \input{04_experiment_section.tex}
 \input{05_conclusion_section.tex}
 
-\appendix[前馈回归器消融可视化结果]
+% 先清空前文浮动队列，再放置跨栏可视化图，避免图被压回结论页或丢在输出队列末尾。
+\clearpage
 \input{06_appendix_section.tex}
 
 \end{document}
