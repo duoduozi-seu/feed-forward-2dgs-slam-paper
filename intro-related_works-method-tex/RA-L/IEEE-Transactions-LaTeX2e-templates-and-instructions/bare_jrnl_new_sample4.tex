@@ -16,7 +16,12 @@
 \usepackage{afterpage}
 \usepackage{cuted}
 \hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
-
+\AtBeginDocument{
+  \abovedisplayskip 1ex plus 1pt minus 2pt
+  \belowdisplayskip 1ex plus 1pt minus 2pt
+  \abovedisplayshortskip 0pt plus 1pt
+  \belowdisplayshortskip 1ex plus 1pt minus 2pt
+}
 \begin{document}
 
 \title{Geometry-Guided Feed-Forward Regression for LiDAR-Inertial-Camera Photo-Realistic 2DGS Mapping}

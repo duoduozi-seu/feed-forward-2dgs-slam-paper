@@ -23,14 +23,14 @@
 
 采用 SPNet 轻量级深度补全网络将 RGB 图像与稀疏 LiDAR 深度融合为稠密深度图，并在无 LiDAR 覆盖的区域采样补充 3D 初始点。最终，SPNet 补充点与原始 LiDAR 投影点合并构成初始点集。
 
-使用 DA3 对当前帧 RGB 图像推理输出相对深度图后，系统通过最小二乘仿射对齐将其与稀疏 LiDAR 深度配准，得到与真实尺度一致的稠密深度图，再以中心差分计算逐像素法线。按初始点的像素坐标在法线图上采样，得到每个初始点的相机空间法线 $\mathbf{n}_{\text{cam}} \in \mathbb{R}^3$。
+相较于直接由 SPNet 补全深度求导获得法线，DA3 具有更强的场景结构先验，能够提供更平滑、稳定的表面方向估计。因此，本文使用 DA3 对当前帧 RGB 图像推理输出相对深度图，并通过最小二乘仿射对齐将其与稀疏 LiDAR 深度配准，得到与真实尺度一致的稠密深度图；随后以中心差分计算逐像素法线。按初始点的像素坐标在法线图上采样，得到每个初始点的相机空间法线 $\mathbf{n}_{\text{cam}} \in \mathbb{R}^3$。
 
 \subsection{前馈高斯回归网络}
 
 % 网络结构图跟随前馈高斯回归网络小节进入浮动队列，并保持在系统流程图之后编号。
 \begin{figure*}[!t]
     \centering
-    \includegraphics[width=\textwidth,height=0.34\textheight,keepaspectratio]{../../net-pipeline.pdf}
+    \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{../../net-pipeline.pdf}
     \caption{上下文感知前馈高斯回归器结构。网络首先在滑动窗口内对有效候选种子构造逐点对齐的上下文，并通过冻结的共享主干提取当前帧与历史帧的图像-渲染特征；随后，跨注意力模块汇聚多视图外观信息，并与逆深度、DA3 法线和位置编码等几何先验一起输入残差 MLP 编码器；最后，多头约束解码器预测完整的 2DGS surfel 属性 $(\mu, s, \alpha, c, q)$，其中法线引导的旋转分支通过 Gram-Schmidt 正交化构造几何一致的朝向。}
     \label{fig:net-pipeline}
 \end{figure*}
@@ -107,4 +107,3 @@ f_{\boldsymbol{\theta}} : \{(\mathbf{ctx}_i, \mathbf{g}_i)\}_{i=1}^{N_t}
 数据准备阶段显式消解此歧义：对每个 GT 高斯，强制 $s_1 \geq s_2$；当需要交换时，同步对四元数施加 $90^\circ$ 旋转：$\mathbf{q}' = \text{normalize}((w-z, x+y, y-x, w+z) / \sqrt{2})$。
 
 \methodlead{3) 训练目标：}网络以多任务损失联合训练，涵盖尺度、旋转、颜色和不透明度全部预测属性。尺度损失在 log 世界尺度空间以 L1 距离度量；旋转损失采用四元数余弦距离 $\mathcal{L}_{\text{rot}} = 1 - |\langle \mathbf{q}_{\text{pred}}, \mathbf{q}_{\text{gt}} \rangle|$；颜色损失对 DC 和高阶 SH 系数分别以 MSE 监督；不透明度损失为 L1 距离。
-  
