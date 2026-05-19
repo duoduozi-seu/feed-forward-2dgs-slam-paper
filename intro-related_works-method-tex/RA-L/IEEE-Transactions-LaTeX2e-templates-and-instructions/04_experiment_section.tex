@@ -81,14 +81,14 @@ Ours（time-to-quality） & \textbf{17.7 $\pm$ 26.0 (281/391)} & \textbf{3.1 $\p
 \renewcommand{\tablename}{Table}
 \begin{table}[!t]
 \centering
-\caption{Early convergence trend of the feed-forward regressor ablation on \texttt{hku\_campus\_00}. Values report the mean over all valid training frames at each local optimization step after Gaussian insertion. Higher PSNR/SSIM and lower LPIPS are better. Best results at each step are in bold.}
+\caption{Early convergence of the feed-forward regressor ablation on \texttt{hku\_campus\_00}. Values are averaged over valid training frames; bold indicates the better result at each step.}
 \label{tab:ablation_curves}
 \renewcommand{\arraystretch}{1.14}
 \setlength{\tabcolsep}{4pt}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{llccccc}
 \toprule
-\multirow{2}{*}{\textbf{Metric}} & \multirow{2}{*}{\textbf{Method}} & \multicolumn{5}{c}{\textbf{Local optimization steps after insertion}} \\
+\multirow{2}{*}{\textbf{Metric}} & \multirow{2}{*}{\textbf{Method}} & \multicolumn{5}{c}{\textbf{Steps after insertion}} \\
 \cmidrule(lr){3-7}
  & & \textbf{0} & \textbf{4} & \textbf{8} & \textbf{12} & \textbf{16} \\
 \midrule
