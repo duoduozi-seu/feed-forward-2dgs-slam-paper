@@ -1,0 +1,115 @@
+\begin{thebibliography}{10}
+
+\bibitem{kerbl20233d}
+B.~Kerbl, G.~Kopanas, T.~Leimk{\"u}hler, and G.~Drettakis, ``3d gaussian
+  splatting for real-time radiance field rendering,'' {\em ACM Transactions on
+  Graphics}, vol.~42, no.~4, 2023.
+
+\bibitem{huang20242d}
+B.~Huang, Z.~Yu, A.~Chen, A.~Geiger, and S.~Gao, ``2d gaussian splatting for
+  geometrically accurate radiance fields,'' in {\em ACM SIGGRAPH 2024
+  conference papers}, pp.~1--11, 2024.
+
+\bibitem{mildenhall2021nerf}
+B.~Mildenhall, P.~P. Srinivasan, M.~Tancik, J.~T. Barron, R.~Ramamoorthi, and
+  R.~Ng, ``Nerf: Representing scenes as neural radiance fields for view
+  synthesis,'' in {\em European Conference on Computer Vision}, pp.~405--421,
+  Springer, 2020.
+
+\bibitem{dai2024high}
+P.~Dai, J.~Xu, W.~Xie, X.~Liu, H.~Wang, and W.~Xu, ``High-quality surface
+  reconstruction using gaussian surfels,'' in {\em ACM SIGGRAPH 2024 Conference
+  Papers}, pp.~1--11, 2024.
+
+\bibitem{chen2024pgsr}
+D.~Chen, H.~Li, W.~Ye, Y.~Wang, W.~Xie, S.~Zhai, N.~Wang, H.~Liu, H.~Bao, and
+  G.~Zhang, ``Pgsr: Planar-based gaussian splatting for efficient and
+  high-fidelity surface reconstruction,'' {\em IEEE Transactions on
+  Visualization and Computer Graphics}, 2024.
+
+\bibitem{charatan2024pixelsplat}
+D.~Charatan, S.~L. Li, A.~Tagliasacchi, and V.~Sitzmann, ``pixelsplat: 3d
+  gaussian splats from image pairs for scalable generalizable 3d
+  reconstruction,'' in {\em Proceedings of the IEEE/CVF Conference on Computer
+  Vision and Pattern Recognition}, pp.~19457--19467, 2024.
+
+\bibitem{chen2024mvsplat}
+Y.~Chen, H.~Xu, C.~Zheng, B.~Zhuang, M.~Pollefeys, A.~Geiger, T.-J. Cham, and
+  J.~Cai, ``Mvsplat: Efficient 3d gaussian splatting from sparse multi-view
+  images,'' in {\em European Conference on Computer Vision}, pp.~370--386,
+  Springer, 2024.
+
+\bibitem{matsuki2024gaussian}
+H.~Matsuki, R.~Murai, P.~H. Kelly, and A.~J. Davison, ``Gaussian splatting
+  slam,'' in {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition}, pp.~18039--18048, 2024.
+
+\bibitem{yan2024gs}
+C.~Yan, D.~Qu, D.~Xu, B.~Zhao, Z.~Wang, D.~Wang, and X.~Li, ``Gs-slam: Dense
+  visual slam with 3d gaussian splatting,'' in {\em Proceedings of the IEEE/CVF
+  Conference on Computer Vision and Pattern Recognition}, pp.~19595--19604,
+  2024.
+
+\bibitem{keetha2024splatam}
+N.~Keetha, J.~Karhade, K.~M. Jatavallabhula, G.~Yang, S.~Scherer, D.~Ramanan,
+  and J.~Luiten, ``Splatam: Splat track \& map 3d gaussians for dense rgb-d
+  slam,'' in {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition}, pp.~21357--21366, 2024.
+
+\bibitem{huang2024photo}
+H.~Huang, L.~Li, H.~Cheng, and S.-K. Yeung, ``Photo-slam: Real-time
+  simultaneous localization and photorealistic mapping for monocular stereo and
+  rgb-d cameras,'' in {\em Proceedings of the IEEE/CVF Conference on Computer
+  Vision and Pattern Recognition}, pp.~21584--21593, 2024.
+
+\bibitem{lang2024gaussian}
+X.~Lang, L.~Li, C.~Wu, C.~Zhao, L.~Liu, Y.~Liu, J.~Lv, and X.~Zuo,
+  ``Gaussian-lic: Real-time photo-realistic slam with gaussian splatting and
+  lidar-inertial-camera fusion,'' {\em arXiv preprint arXiv:2404.06926}, 2024.
+
+\bibitem{xie2024gs}
+Y.~Xie, Z.~Huang, J.~Wu, and J.~Ma, ``Gs-livm: Real-time photo-realistic
+  lidar-inertial-visual mapping with gaussian splatting,'' {\em arXiv preprint
+  arXiv:2410.17084}, 2024.
+
+\bibitem{hong2025gs}
+S.~Hong, C.~Zheng, Y.~Shen, C.~Li, F.~Zhang, T.~Qin, and S.~Shen, ``Gs-livo:
+  Real-time lidar, inertial, and visual multi-sensor fused odometry with
+  gaussian mapping,'' {\em arXiv preprint arXiv:2501.08672}, 2025.
+
+\bibitem{lang2025gaussianlic2}
+X.~Lang, J.~Lv, K.~Tang, L.~Li, J.~Huang, L.~Liu, Y.~Liu, and X.~Zuo,
+  ``Gaussian-lic2: Lidar-inertial-camera gaussian splatting slam,'' {\em arXiv
+  preprint arXiv:2507.04004}, 2025.
+
+\bibitem{lin2022r}
+J.~Lin and F.~Zhang, ``R 3 live: A robust, real-time, rgb-colored,
+  lidar-inertial-visual tightly-coupled state estimation and mapping package,''
+  in {\em 2022 International Conference on Robotics and Automation (ICRA)},
+  pp.~10672--10678, IEEE, 2022.
+
+\bibitem{li2023spnet}
+T.~Li, S.~Luo, Z.~Fan, Q.~Zhou, and T.~Hu, ``Spnet: Structure preserving
+  network for depth completion,'' {\em PLOS One}, vol.~18, no.~1, p.~e0280886,
+  2023.
+
+\bibitem{lin2025da3}
+H.~Lin, S.~Chen, J.~Liew, D.~Y. Chen, Z.~Li, G.~Shi, J.~Feng, and B.~Kang,
+  ``Depth anything 3: Recovering the visual space from any views,'' {\em arXiv
+  preprint arXiv:2511.10647}, 2025.
+
+\bibitem{sun2024mm3dgs}
+L.~C. Sun, N.~P. Bhatt, J.~C. Liu, Z.~Fan, Z.~Wang, T.~E. Humphreys, and
+  U.~Topcu, ``Mm3dgs slam: Multi-modal 3d gaussian splatting for slam using
+  vision, depth, and inertial measurements,'' in {\em 2024 IEEE/RSJ
+  International Conference on Intelligent Robots and Systems (IROS)},
+  pp.~10159--10166, IEEE, 2024.
+
+\bibitem{nguyen2024mcd}
+T.-M. Nguyen, S.~Yuan, T.~H. Nguyen, P.~Yin, H.~Cao, L.~Xie, M.~Wozniak,
+  P.~Jensfelt, M.~Thiel, J.~Ziegenbein, {\em et~al.}, ``Mcd: Diverse
+  large-scale multi-campus dataset for robot perception,'' in {\em Proceedings
+  of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  pp.~22304--22313, 2024.
+
+\end{thebibliography}
