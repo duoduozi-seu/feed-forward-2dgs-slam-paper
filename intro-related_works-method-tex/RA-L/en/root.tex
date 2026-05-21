@@ -1,27 +1,36 @@
-\documentclass[letterpaper, 10pt, conference]{ieeeconf}
-
-\IEEEoverridecommandlockouts
-\overrideIEEEmargins
-
+\documentclass[letterpaper,journal]{IEEEtran}
+% 期刊版本使用 IEEEtran journal 模板；正文内容迁移自 IROS/root.tex。
 \usepackage[T1]{fontenc}
 \usepackage{amsmath,amsfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{array}
+\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\usepackage{textcomp}
+\usepackage{stfloats}
+\usepackage{url}
+\usepackage{verbatim}
 \usepackage{graphicx}
+\usepackage{cite}
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage[table]{xcolor}
-\usepackage{cite}
-\usepackage{url}
-\usepackage{array}
+\hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
+% 压缩公式上下间距，使迁移后的英文稿更接近期刊双栏排版密度。
+\AtBeginDocument{
+  \abovedisplayskip 1ex plus 1pt minus 2pt
+  \belowdisplayskip 1ex plus 1pt minus 2pt
+  \abovedisplayshortskip 0pt plus 1pt
+  \belowdisplayshortskip 1ex plus 1pt minus 2pt
+}
 
-\title{\LARGE \bf Geometry-Guided Feed-Forward Regression for\\LiDAR-Inertial-Camera Photo-Realistic 2DGS Mapping}
+\title{Geometry-Guided Feed-Forward Regression for LiDAR-Inertial-Camera Photo-Realistic 2DGS Mapping}
 
 \author{Author Names Omitted for Review}
 
 \begin{document}
 
 \maketitle
-\thispagestyle{empty}
-\pagestyle{empty}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % ABSTRACT
@@ -61,7 +70,7 @@ The main contributions are as follows:
 
 \begin{figure*}[!t]
     \centering
-    \includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{../system-pipeline.pdf}
+    \includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{../../system-pipeline.pdf}
     \caption{System pipeline. (A) An external LiDAR-inertial-visual front-end provides synchronized RGB images, LiDAR observations, IMU measurements, and camera poses. (B) The system generates dense geometric priors via SPNet depth completion and DA3 normal estimation, which together with LiDAR points form initial points in under-reconstructed regions. (C) For each candidate point, the feed-forward Gaussian regressor aggregates point-aligned multi-view context and directly predicts 2DGS surfel attributes. (D) The predicted new surfels are inserted into the incremental map and further refined by online optimization; the current map renderings in turn serve as context input for subsequent insertions.}
     \label{fig:system_pipeline}
 \end{figure*}
@@ -98,7 +107,7 @@ Compared with normals obtained by directly differentiating the SPNet-completed d
 
 \begin{figure*}[!t]
     \centering
-    \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{../net-pipeline.pdf}
+    \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{../../net-pipeline.pdf}
     \caption{Architecture of the context-aware feed-forward Gaussian regressor. The network first constructs point-aligned context for valid candidate points within a sliding window and extracts image-rendering features from the current and historical frames through a frozen shared backbone. A cross-attention module then aggregates multi-view appearance information, which is fed together with inverse depth, DA3 normals, and positional encodings into a residual MLP encoder. Finally, a multi-head constrained decoder predicts the 2DGS surfel attributes $(s, \alpha, c, q)$, where the normal-guided rotation branch constructs a geometrically consistent orientation via Gram-Schmidt orthogonalization.}
     \label{fig:net-pipeline}
 \end{figure*}
@@ -249,21 +258,21 @@ Table~\ref{tab:r3live_rendering} presents the quantitative results on R3LIVE (Av
 \setlength{\tabcolsep}{2pt}
 \begin{tabular}{ccccc}
 \small GT & \small MonoGS & \small MM3DGS-SLAM & \small Gaussian-LIC2 & \small Ours \\
-\includegraphics[width=0.188\textwidth]{../../images/compare-hku_campus_00/gt/test_0690.jpg} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-hku_campus_00/monogs/0690-test.jpg} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-hku_campus_00/mm3dgs/test_0690.png} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-hku_campus_00/gslic2/test_0690.jpg} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-hku_campus_00/ours/test_0690.jpg} \\
-\includegraphics[width=0.188\textwidth]{../../images/compare-degenerate_00/gt/test_0516.jpg} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-degenerate_00/monogs/0516-test.jpg} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-degenerate_00/mm3dgs/test_0516.png} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-degenerate_00/gslic2/test_0516.jpg} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-degenerate_00/ours/test_0516.jpg} \\
-\includegraphics[width=0.188\textwidth]{../../images/compare-custom-2/gt/test_1080.png} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-custom-2/monogs/test_1080.jpg} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-custom-2/mm3dgs/test_1080.png} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-custom-2/gslic2/test_1080.jpg} &
-\includegraphics[width=0.188\textwidth]{../../images/compare-custom-2/ours/test_1080.jpg} \\
+\includegraphics[width=0.188\textwidth]{../../../images/compare-hku_campus_00/gt/test_0690.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-hku_campus_00/monogs/0690-test.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-hku_campus_00/mm3dgs/test_0690.png} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-hku_campus_00/gslic2/test_0690.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-hku_campus_00/ours/test_0690.jpg} \\
+\includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/gt/test_0516.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/monogs/0516-test.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/mm3dgs/test_0516.png} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/gslic2/test_0516.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-degenerate_00/ours/test_0516.jpg} \\
+\includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/gt/test_1080.png} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/monogs/test_1080.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/mm3dgs/test_1080.png} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/gslic2/test_1080.jpg} &
+\includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/ours/test_1080.jpg} \\
 \end{tabular}
 \caption{Qualitative comparison on public and self-collected datasets. Row 1: \texttt{hku\_campus\_00} frame 690. Row 2: \texttt{degenerate\_seq\_00} frame 516. Row 3: \texttt{seu\_campus\_seq\_01} frame 1080. Compared with MonoGS, MM3DGS-SLAM, and Gaussian-LIC2, our method preserves sharper details at structural boundaries, ground textures, and distant regions, while significantly reducing blur, trailing artifacts, and local distortion.}
 \label{fig:qualitative_compare}
@@ -337,33 +346,33 @@ The visualization results in Fig.~\ref{fig:ablation_visual} provide an intuitive
 & \multicolumn{3}{c}{Baseline} & \multicolumn{3}{c}{Ours} \\
 frame & 0 steps & 4 steps & 8 steps & 0 steps & 4 steps & 8 steps \\
 \texttt{0004} &
-\ablimg{../../images/self_compare/baseline/train_0004/times_0000.jpg} &
-\ablimg{../../images/self_compare/baseline/train_0004/times_0004.jpg} &
-\ablimg{../../images/self_compare/baseline/train_0004/times_0008.jpg} &
-\ablimg{../../images/self_compare/ours/train_0004/times_0000.jpg} &
-\ablimg{../../images/self_compare/ours/train_0004/times_0004.jpg} &
-\ablimg{../../images/self_compare/ours/train_0004/times_0008.jpg} \\
+\ablimg{../../../images/self_compare/baseline/train_0004/times_0000.jpg} &
+\ablimg{../../../images/self_compare/baseline/train_0004/times_0004.jpg} &
+\ablimg{../../../images/self_compare/baseline/train_0004/times_0008.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0004/times_0000.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0004/times_0004.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0004/times_0008.jpg} \\
 \texttt{0084} &
-\ablimg{../../images/self_compare/baseline/train_0084/times_0000.jpg} &
-\ablimg{../../images/self_compare/baseline/train_0084/times_0004.jpg} &
-\ablimg{../../images/self_compare/baseline/train_0084/times_0008.jpg} &
-\ablimg{../../images/self_compare/ours/train_0084/times_0000.jpg} &
-\ablimg{../../images/self_compare/ours/train_0084/times_0004.jpg} &
-\ablimg{../../images/self_compare/ours/train_0084/times_0008.jpg} \\
+\ablimg{../../../images/self_compare/baseline/train_0084/times_0000.jpg} &
+\ablimg{../../../images/self_compare/baseline/train_0084/times_0004.jpg} &
+\ablimg{../../../images/self_compare/baseline/train_0084/times_0008.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0084/times_0000.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0084/times_0004.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0084/times_0008.jpg} \\
 \texttt{0609} &
-\ablimg{../../images/self_compare/baseline/train_0609/times_0000.jpg} &
-\ablimg{../../images/self_compare/baseline/train_0609/times_0004.jpg} &
-\ablimg{../../images/self_compare/baseline/train_0609/times_0008.jpg} &
-\ablimg{../../images/self_compare/ours/train_0609/times_0000.jpg} &
-\ablimg{../../images/self_compare/ours/train_0609/times_0004.jpg} &
-\ablimg{../../images/self_compare/ours/train_0609/times_0008.jpg} \\
+\ablimg{../../../images/self_compare/baseline/train_0609/times_0000.jpg} &
+\ablimg{../../../images/self_compare/baseline/train_0609/times_0004.jpg} &
+\ablimg{../../../images/self_compare/baseline/train_0609/times_0008.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0609/times_0000.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0609/times_0004.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0609/times_0008.jpg} \\
 \texttt{0784} &
-\ablimg{../../images/self_compare/baseline/train_0784/times_0000.jpg} &
-\ablimg{../../images/self_compare/baseline/train_0784/times_0004.jpg} &
-\ablimg{../../images/self_compare/baseline/train_0784/times_0008.jpg} &
-\ablimg{../../images/self_compare/ours/train_0784/times_0000.jpg} &
-\ablimg{../../images/self_compare/ours/train_0784/times_0004.jpg} &
-\ablimg{../../images/self_compare/ours/train_0784/times_0008.jpg} \\
+\ablimg{../../../images/self_compare/baseline/train_0784/times_0000.jpg} &
+\ablimg{../../../images/self_compare/baseline/train_0784/times_0004.jpg} &
+\ablimg{../../../images/self_compare/baseline/train_0784/times_0008.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0784/times_0000.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0784/times_0004.jpg} &
+\ablimg{../../../images/self_compare/ours/train_0784/times_0008.jpg} \\
 \end{tabular}
 }
 \end{center}
@@ -389,7 +398,7 @@ Experiments on R3LIVE and MCD demonstrate that the proposed method consistently 
 % REFERENCES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\bibliographystyle{ieeetr}
+\bibliographystyle{IEEEtran}
 \bibliography{references}
 
 \end{document}
