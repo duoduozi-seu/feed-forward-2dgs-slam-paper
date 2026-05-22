@@ -16,6 +16,8 @@
 \usepackage{multirow}
 \usepackage[table]{xcolor}
 \hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
+% 数据集、序列和代表帧名称统一使用正文 Times 斜体，避免被 caption 小型大写环境改成缺失字体形状。
+\newcommand{\datasetname}[1]{\mbox{\normalfont\itshape #1}}
 % 压缩公式上下间距，使迁移后的英文稿更接近期刊双栏排版密度。
 \AtBeginDocument{
   \abovedisplayskip 1ex plus 1pt minus 2pt
@@ -219,21 +221,21 @@ The feed-forward network is trained without any external multi-view annotated da
 \midrule
 \rowcolor{black!8}
 \multicolumn{5}{l}{\textbf{R3LIVE (Avia)}} \\
-degenerate\_seq\_00 & 14.59 | 0.460 | 0.624 & 19.35 | 0.698 | 0.212 & 21.99 | 0.782 | 0.162 & \textbf{23.41} | \textbf{0.821} | \textbf{0.137} \\
-degenerate\_seq\_01 & 14.66 | 0.438 | 0.692 & 18.57 | 0.621 | 0.277 & 22.94 | 0.790 | 0.159 & \textbf{23.54} | \textbf{0.810} | \textbf{0.157} \\
-hku\_campus\_00 & 15.41 | 0.464 | 0.675 & 18.70 | 0.621 | 0.319 & 24.34 | 0.787 | 0.156 & \textbf{25.52} | \textbf{0.820} | \textbf{0.152} \\
-hku\_campus\_01 & 8.39 | 0.065 | 0.873 & 16.97 | 0.593 | 0.271 & 20.52 | 0.674 | 0.236 & \textbf{23.15} | \textbf{0.754} | \textbf{0.174} \\
-hku\_park\_00 & 13.24 | 0.319 | 0.733 & 14.98 | 0.363 | 0.396 & 17.17 | 0.469 | 0.340 & \textbf{17.80} | \textbf{0.491} | \textbf{0.331} \\
-hku\_park\_01 & 12.22 | 0.289 | 0.790 & 15.79 | 0.392 | 0.409 & 19.46 | 0.529 | 0.325 & \textbf{20.65} | \textbf{0.580} | \textbf{0.248} \\
+\datasetname{degenerate\_seq\_00} & 14.59 | 0.460 | 0.624 & 19.35 | 0.698 | 0.212 & 21.99 | 0.782 | 0.162 & \textbf{23.41} | \textbf{0.821} | \textbf{0.137} \\
+\datasetname{degenerate\_seq\_01} & 14.66 | 0.438 | 0.692 & 18.57 | 0.621 | 0.277 & 22.94 | 0.790 | 0.159 & \textbf{23.54} | \textbf{0.810} | \textbf{0.157} \\
+\datasetname{hku\_campus\_00} & 15.41 | 0.464 | 0.675 & 18.70 | 0.621 | 0.319 & 24.34 | 0.787 | 0.156 & \textbf{25.52} | \textbf{0.820} | \textbf{0.152} \\
+\datasetname{hku\_campus\_01} & 8.39 | 0.065 | 0.873 & 16.97 | 0.593 | 0.271 & 20.52 | 0.674 | 0.236 & \textbf{23.15} | \textbf{0.754} | \textbf{0.174} \\
+\datasetname{hku\_park\_00} & 13.24 | 0.319 | 0.733 & 14.98 | 0.363 | 0.396 & 17.17 | 0.469 | 0.340 & \textbf{17.80} | \textbf{0.491} | \textbf{0.331} \\
+\datasetname{hku\_park\_01} & 12.22 | 0.289 | 0.790 & 15.79 | 0.392 | 0.409 & 19.46 | 0.529 | 0.325 & \textbf{20.65} | \textbf{0.580} | \textbf{0.248} \\
 \rowcolor{black!8}
 \multicolumn{5}{l}{\textbf{MCD (OS1-64)}} \\
-tuhh\_day\_02 & 8.72 | 0.158 | 0.893 & 11.15 | 0.478 | 0.350 & 20.35 | 0.626 | 0.262 & \textbf{20.99} | \textbf{0.652} | \textbf{0.249} \\
-tuhh\_day\_03 & 8.09 | 0.136 | 0.896 & 11.36 | 0.542 | 0.301 & 21.38 | 0.672 | \textbf{0.229} & \textbf{21.82} | \textbf{0.688} | 0.238 \\
-tuhh\_day\_04 & 11.73 | 0.250 | 0.805 & 13.86 | 0.384 | 0.398 & \textbf{19.27} | \textbf{0.528} | 0.310 & 19.07 | 0.506 | \textbf{0.309} \\
+\datasetname{tuhh\_day\_02} & 8.72 | 0.158 | 0.893 & 11.15 | 0.478 | 0.350 & 20.35 | 0.626 | 0.262 & \textbf{20.99} | \textbf{0.652} | \textbf{0.249} \\
+\datasetname{tuhh\_day\_03} & 8.09 | 0.136 | 0.896 & 11.36 | 0.542 | 0.301 & 21.38 | 0.672 | \textbf{0.229} & \textbf{21.82} | \textbf{0.688} | 0.238 \\
+\datasetname{tuhh\_day\_04} & 11.73 | 0.250 | 0.805 & 13.86 | 0.384 | 0.398 & \textbf{19.27} | \textbf{0.528} | 0.310 & 19.07 | 0.506 | \textbf{0.309} \\
 \rowcolor{black!8}
 \multicolumn{5}{l}{\textbf{Self-Collected Dataset (Avia)}} \\
-seu\_campus\_seq\_00 & 14.56 | 0.411 | 0.732 & 18.54 | 0.563 | 0.366 & 23.97 | 0.769 | 0.215 & \textbf{25.55} | \textbf{0.830} | \textbf{0.145} \\
-seu\_campus\_seq\_01 & 13.21 | 0.392 | 0.796 & 17.14 | 0.528 | 0.421 & 22.76 | 0.711 | 0.195 & \textbf{24.56} | \textbf{0.797} | \textbf{0.161} \\
+\datasetname{seu\_campus\_seq\_00} & 14.56 | 0.411 | 0.732 & 18.54 | 0.563 | 0.366 & 23.97 | 0.769 | 0.215 & \textbf{25.55} | \textbf{0.830} | \textbf{0.145} \\
+\datasetname{seu\_campus\_seq\_01} & 13.21 | 0.392 | 0.796 & 17.14 | 0.528 | 0.421 & 22.76 | 0.711 | 0.195 & \textbf{24.56} | \textbf{0.797} | \textbf{0.161} \\
 \bottomrule
 \end{tabular}%
 }
@@ -241,11 +243,11 @@ seu\_campus\_seq\_01 & 13.21 | 0.392 | 0.796 & 17.14 | 0.528 | 0.421 & 22.76 | 0
 
 \subsection{Experimental Setup}
 
-We validate the proposed method from two perspectives: (i) quantitative and qualitative rendering-quality comparisons with existing incremental Gaussian mapping methods on the public R3LIVE~\cite{lin2022r} (Avia) dataset, the MCD~\cite{nguyen2024mcd} (OS1-64) dataset, and our self-collected dataset captured on the Southeast University Sipailou campus (using a Livox Avia LiDAR, a Hikvision MV-CA013-21UC RGB camera, and the 200\,Hz IMU integrated in the LiDAR); (ii) ablation analysis of the feed-forward regressor on \texttt{hku\_campus\_seq\_00}, focusing on its effect on new-Gaussian initialization quality and early convergence under limited optimization budgets. Rendering quality is measured by PSNR, SSIM, and LPIPS. All methods are evaluated under the same data splits, with non-training frames used for within-sequence novel-view evaluation. To ensure a fair comparison, the total optimization steps for every method on each sequence are capped at 20 times the number of image frames.
+We validate the proposed method from two perspectives: (i) quantitative and qualitative rendering-quality comparisons with existing incremental Gaussian mapping methods on the public R3LIVE~\cite{lin2022r} (Avia) dataset, the MCD~\cite{nguyen2024mcd} (OS1-64) dataset, and our self-collected dataset captured on the Southeast University Sipailou campus (using a Livox Avia LiDAR, a Hikvision MV-CA013-21UC RGB camera, and the 200\,Hz IMU integrated in the LiDAR); (ii) ablation analysis of the feed-forward regressor on \datasetname{hku\_campus\_seq\_00}, focusing on its effect on new-Gaussian initialization quality and early convergence under limited optimization budgets. Rendering quality is measured by PSNR, SSIM, and LPIPS. All methods are evaluated under the same data splits, with non-training frames used for within-sequence novel-view evaluation. To ensure a fair comparison, the total optimization steps for every method on each sequence are capped at 20 times the number of image frames.
 
 All experiments are conducted on a unified hardware and software platform: Ubuntu 20.04 (Python 3.8), PyTorch 2.0.0, CUDA 11.8, a single RTX 4090D (24\,GB) GPU, a 16-vCPU Intel Xeon Platinum 8481C processor, and 80\,GB system memory.
 
-The feed-forward regression network is trained on R3LIVE sequences \texttt{hku\_campus\_seq\_02}, \texttt{hku\_campus\_seq\_03}, \texttt{hkust\_campus\_seq\_02}, \texttt{hkust\_campus\_seq\_03}, and our self-collected sequences \texttt{seu\_campus\_seq\_02}, \texttt{seu\_campus\_seq\_03}. Training uses the Adam optimizer with a batch size of 8192 (point-level) and gradient clipping. The learning rate is set to $5\times10^{-4}$ for a total of 150 epochs. Loss weights are $\lambda_{\text{scale}}{=}1.0$, $\lambda_{\text{rot}}{=}1.0$, $\lambda_{\text{dc}}{=}1.0$, $\lambda_{\text{rest}}{=}0.1$, $\lambda_{\text{opac}}{=}1.0$. The context window size is set to 15.
+The feed-forward regression network is trained on R3LIVE sequences \datasetname{hku\_campus\_seq\_02}, \datasetname{hku\_campus\_seq\_03}, \datasetname{hkust\_campus\_seq\_02}, \datasetname{hkust\_campus\_seq\_03}, and our self-collected sequences \datasetname{seu\_campus\_seq\_02}, \datasetname{seu\_campus\_seq\_03}. Training uses the Adam optimizer with a batch size of 8192 (point-level) and gradient clipping. The learning rate is set to $5\times10^{-4}$ for a total of 150 epochs. Loss weights are $\lambda_{\text{scale}}{=}1.0$, $\lambda_{\text{rot}}{=}1.0$, $\lambda_{\text{dc}}{=}1.0$, $\lambda_{\text{rest}}{=}0.1$, $\lambda_{\text{opac}}{=}1.0$. The context window size is set to 15.
 
 Baselines include MonoGS~\cite{matsuki2024gaussian}, MM3DGS-SLAM~\cite{sun2024mm3dgs}, and Gaussian-LIC2~\cite{lang2025gaussianlic2}. Baseline numbers on R3LIVE and MCD are taken from the Gaussian-LIC2 paper. On our self-collected dataset and for qualitative renderings, MonoGS runs in vision-only mode; MM3DGS-SLAM runs in RGB-D mode with pseudo RGB-D data formed by projecting LiDAR points onto images; Gaussian-LIC2 uses the February 2026 open-source release.
 
@@ -274,17 +276,17 @@ Table~\ref{tab:r3live_rendering} presents the quantitative results on R3LIVE (Av
 \includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/gslic2/test_1080.jpg} &
 \includegraphics[width=0.188\textwidth]{../../../images/compare-custom-2/ours/test_1080.jpg} \\
 \end{tabular}
-\caption{Qualitative comparison on public and self-collected datasets. Row 1: \texttt{hku\_campus\_00} frame 690. Row 2: \texttt{degenerate\_seq\_00} frame 516. Row 3: \texttt{seu\_campus\_seq\_01} frame 1080. Compared with MonoGS, MM3DGS-SLAM, and Gaussian-LIC2, our method preserves sharper details at structural boundaries, ground textures, and distant regions, while significantly reducing blur, trailing artifacts, and local distortion.}
+\caption{Qualitative comparison on public and self-collected datasets. Row 1: \datasetname{hku\_campus\_00} frame 690. Row 2: \datasetname{degenerate\_seq\_00} frame 516. Row 3: \datasetname{seu\_campus\_seq\_01} frame 1080. Compared with MonoGS, MM3DGS-SLAM, and Gaussian-LIC2, our method preserves sharper details at structural boundaries, ground textures, and distant regions, while significantly reducing blur, trailing artifacts, and local distortion.}
 \label{fig:qualitative_compare}
 \end{figure*}
 
 \subsection{Ablation Study: Effect of the Feed-Forward Regressor}
 
-To verify the contribution of the feed-forward regressor to incremental 2DGS mapping, we conduct an ablation study on \texttt{hku\_campus\_00}. We denote the system without the regressor (using rule-based initialization) as Baseline and the full system as Ours. Unlike comparisons on a few representative frames, we collect the optimization trajectories of all training frames and plot them against the number of post-insertion optimization steps (\texttt{train\_times}), evaluating from three angles: (i) early quality at a fixed optimization budget, (ii) overall convergence benefit within the first 16 steps (AUC), and (iii) the number of steps required to reach a given quality threshold. The PSNR, SSIM, and LPIPS thresholds are set to 25.0, 0.70, and 0.18, respectively.
+To verify the contribution of the feed-forward regressor to incremental 2DGS mapping, we conduct an ablation study on \datasetname{hku\_campus\_00}. We denote the system without the regressor (using rule-based initialization) as Baseline and the full system as Ours. Unlike comparisons on a few representative frames, we collect the optimization trajectories of all training frames and plot them against the number of post-insertion optimization steps (\texttt{train\_times}), evaluating from three angles: (i) early quality at a fixed optimization budget, (ii) overall convergence benefit within the first 16 steps (AUC), and (iii) the number of steps required to reach a given quality threshold. The PSNR, SSIM, and LPIPS thresholds are set to 25.0, 0.70, and 0.18, respectively.
 
 \begin{table}[!t]
 \centering
-\caption{Ablation results on \texttt{hku\_campus\_00}. Statistics are computed over the optimization trajectories of all training frames. The first two rows report mean $\pm$ std at 16 steps; the middle two rows report the AUC over the first 16 steps; the last two rows report the mean $\pm$ std steps to reach the quality threshold, with the number of frames that successfully reach the threshold in parentheses.}
+\caption{Ablation results on \datasetname{hku\_campus\_00}. Statistics are computed over the optimization trajectories of all training frames. The first two rows report mean $\pm$ std at 16 steps; the middle two rows report the AUC over the first 16 steps; the last two rows report the mean $\pm$ std steps to reach the quality threshold, with the number of frames that successfully reach the threshold in parentheses.}
 \label{tab:ablation_regressor}
 \renewcommand{\arraystretch}{1.18}
 \resizebox{\columnwidth}{!}{%
@@ -309,7 +311,7 @@ Table~\ref{tab:ablation_regressor} shows that introducing the feed-forward regre
 
 \begin{table}[!t]
 \centering
-\caption{Early convergence of the feed-forward regressor ablation on \texttt{hku\_campus\_00}. Values are averaged over valid training frames; bold indicates the better result at each step.}
+\caption{Early convergence of the feed-forward regressor ablation on \datasetname{hku\_campus\_00}. Values are averaged over valid training frames; bold indicates the better result at each step.}
 \label{tab:ablation_curves}
 \renewcommand{\arraystretch}{1.14}
 \setlength{\tabcolsep}{4pt}
@@ -345,28 +347,28 @@ The visualization results in Fig.~\ref{fig:ablation_visual} provide an intuitive
 \begin{tabular}{@{}c@{\hspace{2pt}}ccc@{\hspace{5pt}}ccc@{}}
 & \multicolumn{3}{c}{Baseline} & \multicolumn{3}{c}{Ours} \\
 frame & 0 steps & 4 steps & 8 steps & 0 steps & 4 steps & 8 steps \\
-\texttt{0004} &
+\datasetname{0004} &
 \ablimg{../../../images/self_compare/baseline/train_0004/times_0000.jpg} &
 \ablimg{../../../images/self_compare/baseline/train_0004/times_0004.jpg} &
 \ablimg{../../../images/self_compare/baseline/train_0004/times_0008.jpg} &
 \ablimg{../../../images/self_compare/ours/train_0004/times_0000.jpg} &
 \ablimg{../../../images/self_compare/ours/train_0004/times_0004.jpg} &
 \ablimg{../../../images/self_compare/ours/train_0004/times_0008.jpg} \\
-\texttt{0084} &
+\datasetname{0084} &
 \ablimg{../../../images/self_compare/baseline/train_0084/times_0000.jpg} &
 \ablimg{../../../images/self_compare/baseline/train_0084/times_0004.jpg} &
 \ablimg{../../../images/self_compare/baseline/train_0084/times_0008.jpg} &
 \ablimg{../../../images/self_compare/ours/train_0084/times_0000.jpg} &
 \ablimg{../../../images/self_compare/ours/train_0084/times_0004.jpg} &
 \ablimg{../../../images/self_compare/ours/train_0084/times_0008.jpg} \\
-\texttt{0609} &
+\datasetname{0609} &
 \ablimg{../../../images/self_compare/baseline/train_0609/times_0000.jpg} &
 \ablimg{../../../images/self_compare/baseline/train_0609/times_0004.jpg} &
 \ablimg{../../../images/self_compare/baseline/train_0609/times_0008.jpg} &
 \ablimg{../../../images/self_compare/ours/train_0609/times_0000.jpg} &
 \ablimg{../../../images/self_compare/ours/train_0609/times_0004.jpg} &
 \ablimg{../../../images/self_compare/ours/train_0609/times_0008.jpg} \\
-\texttt{0784} &
+\datasetname{0784} &
 \ablimg{../../../images/self_compare/baseline/train_0784/times_0000.jpg} &
 \ablimg{../../../images/self_compare/baseline/train_0784/times_0004.jpg} &
 \ablimg{../../../images/self_compare/baseline/train_0784/times_0008.jpg} &
@@ -376,7 +378,7 @@ frame & 0 steps & 4 steps & 8 steps & 0 steps & 4 steps & 8 steps \\
 \end{tabular}
 }
 \end{center}
-\caption{Ablation visualization of the feed-forward regressor. Representative frames \texttt{train\_0004}, \texttt{train\_0084}, \texttt{train\_0609}, and \texttt{train\_0784} are shown after 0, 4, and 8 post-insertion optimization steps. Left three columns: Baseline; right three columns: Ours.}
+\caption{Ablation visualization of the feed-forward regressor. Representative frames \datasetname{train\_0004}, \datasetname{train\_0084}, \datasetname{train\_0609}, and \datasetname{train\_0784} are shown after 0, 4, and 8 post-insertion optimization steps. Left three columns: Baseline; right three columns: Ours.}
 \label{fig:ablation_visual}
 \end{figure*}
 
