@@ -21,6 +21,62 @@
 \providecommand{\BIBdecl}{\relax}
 \BIBdecl
 
+\bibitem{tosi2024nerfs}
+F.~Tosi, Y.~Zhang, Z.~Gong, E.~Sandstr{\"o}m, S.~Mattoccia, M.~R. Oswald, and
+  M.~Poggi, ``How nerfs and 3d gaussian splatting are reshaping slam: a
+  survey,'' \emph{arXiv preprint arXiv:2402.13255}, 2024.
+
+\bibitem{sucar2021imap}
+E.~Sucar, S.~Liu, J.~Ortiz, and A.~J. Davison, ``imap: Implicit mapping and
+  positioning in real-time,'' in \emph{Proceedings of the IEEE/CVF
+  International Conference on Computer Vision}, 2021, pp. 6229--6238.
+
+\bibitem{zhu2022nice}
+Z.~Zhu, S.~Peng, V.~Larsson, W.~Xu, H.~Bao, Z.~Cui, M.~R. Oswald, and
+  M.~Pollefeys, ``Nice-slam: Neural implicit scalable encoding for slam,'' in
+  \emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition}, 2022, pp. 12\,786--12\,796.
+
+\bibitem{wang2023co}
+H.~Wang, J.~Wang, and L.~Agapito, ``Co-slam: Joint coordinate and sparse
+  parametric encodings for neural real-time slam,'' in \emph{Proceedings of the
+  IEEE/CVF Conference on Computer Vision and Pattern Recognition}, 2023, pp.
+  13\,293--13\,302.
+
+\bibitem{yugay2023gaussian}
+V.~Yugay, Y.~Li, T.~Gevers, and M.~R. Oswald, ``Gaussian-slam: Photo-realistic
+  dense slam with gaussian splatting,'' \emph{arXiv preprint arXiv:2312.10070},
+  2023.
+
+\bibitem{wu2024mm}
+C.~Wu, Y.~Duan, X.~Zhang, Y.~Sheng, J.~Ji, and Y.~Zhang, ``Mm-gaussian: 3d
+  gaussian-based multi-modal fusion for localization and reconstruction in
+  unbounded scenes,'' in \emph{2024 IEEE/RSJ International Conference on
+  Intelligent Robots and Systems (IROS)}.\hskip 1em plus 0.5em minus
+  0.4em\relax IEEE, 2024, pp. 12\,287--12\,293.
+
+\bibitem{zhao2024tclc}
+C.~Zhao, S.~Sun, R.~Wang, Y.~Guo, J.-J. Wan, Z.~Huang, X.~Huang, Y.~V. Chen,
+  and L.~Ren, ``Tclc-gs: Tightly coupled lidar-camera gaussian splatting for
+  autonomous driving,'' \emph{arXiv preprint arXiv:2404.02410}, 2024.
+
+\bibitem{lin2024r}
+J.~Lin and F.~Zhang, ``{R\textsuperscript{3}LIVE++: A Robust, Real-time,
+  Radiance Reconstruction Package with a Tightly-coupled LiDAR-Inertial-Visual
+  State Estimator},'' \emph{IEEE Transactions on Pattern Analysis and Machine
+  Intelligence}, 2024.
+
+\bibitem{zheng2024fast}
+C.~Zheng, W.~Xu, Z.~Zou, T.~Hua, C.~Yuan, D.~He, B.~Zhou, Z.~Liu, J.~Lin,
+  F.~Zhu \emph{et~al.}, ``Fast-livo2: Fast, direct lidar-inertial-visual
+  odometry,'' \emph{IEEE Transactions on Robotics}, 2024.
+
+\bibitem{lang2023coco}
+X.~Lang, C.~Chen, K.~Tang, Y.~Ma, J.~Lv, Y.~Liu, and X.~Zuo, ``Coco-lic:
+  continuous-time tightly-coupled lidar-inertial-camera odometry using
+  non-uniform b-spline,'' \emph{IEEE Robotics and Automation Letters}, vol.~8,
+  no.~11, pp. 7074--7081, 2023.
+
 \bibitem{kerbl20233d}
 B.~Kerbl, G.~Kopanas, T.~Leimk{\"u}hler, and G.~Drettakis, ``3d gaussian
   splatting for real-time radiance field rendering,'' \emph{ACM Transactions on
