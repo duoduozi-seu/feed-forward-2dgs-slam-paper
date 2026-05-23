@@ -41,7 +41,8 @@
 
 \begin{abstract}
 
-Incremental 3D scene reconstruction requires the system to continuously expand the map while receiving observations frame by frame. The limited online optimization budget makes the initial attribute quality of newly inserted Gaussians directly affect the cumulative mapping result. Existing incremental mapping systems based on 3D Gaussian Splatting (3DGS) have two interrelated limitations: 3D ellipsoidal primitives lack explicit surface normal semantics, and rule-based initialization strategies fail to fully exploit external geometric priors. We propose a context-aware feed-forward Gaussian regression system for incremental 2D Gaussian Splatting (2DGS) scene reconstruction. The system adopts 2DGS surfels as the map representation and combines depth completion with monocular normal priors to construct candidate points with geometric orientations. A feed-forward regression network aggregates image-rendering context from the current and historical frames via cross-attention, anchors surfel rotation on normal priors through Gram-Schmidt orthogonalization, and predicts complete surfel attributes in a single forward pass. The network is trained through self-distillation without any external annotated dataset. Experiments on the R3LIVE and MCD datasets show that our method outperforms all baselines on nearly all test sequences, achieving an average improvement of 1.28\,dB PSNR over the closest multi-sensor incremental Gaussian mapping baseline. Ablation studies further confirm that the feed-forward regressor consistently improves the early convergence quality of new Gaussians under limited optimization budgets.
+% 项目主页使用 \href 生成 PDF 可点击链接，并用 \textcolor 保留 hidelinks 下的显式颜色。
+Incremental 3D scene reconstruction requires the system to continuously expand the map while receiving observations frame by frame. The limited online optimization budget makes the initial attribute quality of newly inserted Gaussians directly affect the cumulative mapping result. Existing incremental mapping systems based on 3D Gaussian Splatting (3DGS) have two interrelated limitations: 3D ellipsoidal primitives lack explicit surface normal semantics, and rule-based initialization strategies fail to fully exploit external geometric priors. We propose a context-aware feed-forward Gaussian regression system for incremental 2D Gaussian Splatting (2DGS) scene reconstruction. The system adopts 2DGS surfels as the map representation and combines depth completion with monocular normal priors to construct candidate points with geometric orientations. A feed-forward regression network aggregates image-rendering context from the current and historical frames via cross-attention, anchors surfel rotation on normal priors through Gram-Schmidt orthogonalization, and predicts complete surfel attributes in a single forward pass. The network is trained through self-distillation without any external annotated dataset. Experiments on the R3LIVE and MCD datasets show that our method outperforms all baselines on nearly all test sequences, achieving an average improvement of 1.28\,dB PSNR over the closest multi-sensor incremental Gaussian mapping baseline. Ablation studies further confirm that the feed-forward regressor consistently improves the early convergence quality of new Gaussians under limited optimization budgets.Our code will be released on project page \href{https://github.com/duoduozi-seu.github.io/GeoSurfel}{\textcolor{magenta}{\nolinkurl{https://github.com/duoduozi-seu.github.io/GeoSurfel}}}.
 
 \end{abstract}
 
@@ -311,31 +312,6 @@ Ours (time-to-quality) & \textbf{17.7 $\pm$ 26.0} & \textbf{3.1 $\pm$ 10.2} & \t
 
 Table~\ref{tab:ablation_regressor} shows that introducing the feed-forward regressor consistently improves early convergence across training frames. Under a fixed budget of 16 post-insertion optimization steps, Ours outperforms Baseline on all three rendering metrics. Ours also reaches the target quality in fewer average steps under all three thresholds. Table~\ref{tab:ablation_curves} further lists the mean convergence trends of the three metrics over the first 16 optimization steps.
 
-\begin{table}[!t]
-\centering
-\caption{Ablation study on early convergence of the feed-forward regressor on \datasetname{hku\_campus\_00}. Values are averaged over valid training frames; bold indicates the better result at each step.}
-\label{tab:ablation_curves}
-\renewcommand{\arraystretch}{1.18}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{llccccc}
-\toprule
-\multirow{2}{*}{\textbf{Metric}} & \multirow{2}{*}{\textbf{Method}} & \multicolumn{5}{c}{\textbf{Steps after insertion}} \\
-\cmidrule(lr){3-7}
- & & \textbf{0} & \textbf{4} & \textbf{8} & \textbf{12} & \textbf{16} \\
-\midrule
-PSNR$\uparrow$ & Baseline & 18.18 & 22.07 & 23.41 & 23.95 & 23.97 \\
- & Ours & \textbf{18.92} & \textbf{22.83} & \textbf{23.83} & \textbf{24.20} & \textbf{24.34} \\
-\addlinespace[2pt]
-SSIM$\uparrow$ & Baseline & 0.636 & 0.753 & 0.786 & 0.800 & 0.800 \\
- & Ours & \textbf{0.661} & \textbf{0.772} & \textbf{0.797} & \textbf{0.810} & \textbf{0.813} \\
-\addlinespace[2pt]
-LPIPS$\downarrow$ & Baseline & 0.380 & 0.291 & 0.248 & 0.226 & 0.213 \\
- & Ours & \textbf{0.366} & \textbf{0.276} & \textbf{0.233} & \textbf{0.211} & \textbf{0.195} \\
-\bottomrule
-\end{tabular}%
-}
-\end{table}
-
 The visualization results in Fig.~\ref{fig:ablation_visual} provide an intuitive explanation for the improved early convergence. Without the regressor, initial Gaussian parameters are given by hand-crafted rules and exhibit strong randomness and disorder, requiring multiple optimization rounds to align with the scene. With the regressor, the scene layout and dominant structures are already recognizable at step 0. The regressor exhibits adaptive behavior across different regions: in under-reconstructed or poorly covered areas, the predicted Gaussians tend toward larger coverage to quickly fill in the dominant structure; in regions with adequate geometric support or rich detail, the predictions favor finer-grained Gaussians to avoid over-covering details. Similarly, in low-texture or large smooth areas, the regressor tends to produce larger Gaussians for efficient early coverage, whereas in regions with richer texture and denser structural boundaries, the predicted Gaussians are typically smaller and more concentrated to facilitate detail expression. As optimization proceeds, our method converges to clear and stable renderings more rapidly.
 
 \newcommand{\ablimg}[1]{\includegraphics[width=0.144\textwidth]{#1}}
@@ -382,6 +358,31 @@ frame & 0 steps & 4 steps & 8 steps & 0 steps & 4 steps & 8 steps \\
 \caption{Ablation visualization of the feed-forward regressor. Representative frames \datasetname{train\_0004}, \datasetname{train\_0084}, \datasetname{train\_0609}, and \datasetname{train\_0784} are shown after 0, 4, and 8 post-insertion optimization steps. Left three columns: Baseline; right three columns: Ours.}
 \label{fig:ablation_visual}
 \end{figure*}
+
+\begin{table}[!t]
+\centering
+\caption{Ablation study on early convergence of the feed-forward regressor on \datasetname{hku\_campus\_00}. Values are averaged over valid training frames; bold indicates the better result at each step.}
+\label{tab:ablation_curves}
+\renewcommand{\arraystretch}{1.18}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llccccc}
+\toprule
+\multirow{2}{*}{\textbf{Metric}} & \multirow{2}{*}{\textbf{Method}} & \multicolumn{5}{c}{\textbf{Steps after insertion}} \\
+\cmidrule(lr){3-7}
+ & & \textbf{0} & \textbf{4} & \textbf{8} & \textbf{12} & \textbf{16} \\
+\midrule
+PSNR$\uparrow$ & Baseline & 18.18 & 22.07 & 23.41 & 23.95 & 23.97 \\
+ & Ours & \textbf{18.92} & \textbf{22.83} & \textbf{23.83} & \textbf{24.20} & \textbf{24.34} \\
+\addlinespace[2pt]
+SSIM$\uparrow$ & Baseline & 0.636 & 0.753 & 0.786 & 0.800 & 0.800 \\
+ & Ours & \textbf{0.661} & \textbf{0.772} & \textbf{0.797} & \textbf{0.810} & \textbf{0.813} \\
+\addlinespace[2pt]
+LPIPS$\downarrow$ & Baseline & 0.380 & 0.291 & 0.248 & 0.226 & 0.213 \\
+ & Ours & \textbf{0.366} & \textbf{0.276} & \textbf{0.233} & \textbf{0.211} & \textbf{0.195} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
 
 The experiments lead to two conclusions. First, in the full novel-view rendering evaluation, our method outperforms all baselines on nearly all test sequences, demonstrating that combining 2DGS representation with context-aware feed-forward insertion consistently improves the rendering quality of incremental Gaussian maps. Second, the core value of the feed-forward regressor lies not merely in slightly higher final metrics but in the significant improvement of the initial quality and early convergence speed after new Gaussian insertion. This property is particularly important for online systems, because better initial Gaussians not only reduce local artifacts but also provide more reliable rendering supervision for subsequent frames, creating a positive feedback loop that continuously improves the overall map quality.
 
