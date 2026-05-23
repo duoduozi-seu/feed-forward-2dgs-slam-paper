@@ -48,6 +48,11 @@ D.~Chen, H.~Li, W.~Ye, Y.~Wang, W.~Xie, S.~Zhai, N.~Wang, H.~Liu, H.~Bao, and
   high-fidelity surface reconstruction,'' \emph{IEEE Transactions on
   Visualization and Computer Graphics}, 2024.
 
+\bibitem{jiang2024li}
+C.~Jiang, R.~Gao, K.~Shao, Y.~Wang, R.~Xiong, and Y.~Zhang, ``Li-gs: Gaussian
+  splatting with lidar incorporated for accurate large-scale reconstruction,''
+  \emph{IEEE Robotics and Automation Letters}, 2024.
+
 \bibitem{charatan2024pixelsplat}
 D.~Charatan, S.~L. Li, A.~Tagliasacchi, and V.~Sitzmann, ``pixelsplat: 3d
   gaussian splats from image pairs for scalable generalizable 3d
@@ -59,6 +64,12 @@ Y.~Chen, H.~Xu, C.~Zheng, B.~Zhuang, M.~Pollefeys, A.~Geiger, T.-J. Cham, and
   J.~Cai, ``Mvsplat: Efficient 3d gaussian splatting from sparse multi-view
   images,'' in \emph{European Conference on Computer Vision}.\hskip 1em plus
   0.5em minus 0.4em\relax Springer, 2024, pp. 370--386.
+
+\bibitem{liu2025mvsgaussian}
+T.~Liu, G.~Wang, S.~Hu, L.~Shen, X.~Ye, Y.~Zang, Z.~Cao, W.~Li, and Z.~Liu,
+  ``Mvsgaussian: Fast generalizable gaussian splatting reconstruction from
+  multi-view stereo,'' in \emph{European Conference on Computer Vision}.\hskip
+  1em plus 0.5em minus 0.4em\relax Springer, 2025, pp. 37--53.
 
 \bibitem{matsuki2024gaussian}
 H.~Matsuki, R.~Murai, P.~H. Kelly, and A.~J. Davison, ``Gaussian splatting
@@ -83,6 +94,11 @@ H.~Huang, L.~Li, H.~Cheng, and S.-K. Yeung, ``Photo-slam: Real-time
   rgb-d cameras,'' in \emph{Proceedings of the IEEE/CVF Conference on Computer
   Vision and Pattern Recognition}, 2024, pp. 21\,584--21\,593.
 
+\bibitem{hong2024liv}
+S.~Hong, J.~He, X.~Zheng, C.~Zheng, and S.~Shen, ``Liv-gaussmap:
+  Lidar-inertial-visual fusion for real-time 3d radiance field map rendering,''
+  \emph{IEEE Robotics and Automation Letters}, 2024.
+
 \bibitem{lang2024gaussian}
 X.~Lang, L.~Li, C.~Wu, C.~Zhao, L.~Liu, Y.~Liu, J.~Lv, and X.~Zuo,
   ``Gaussian-lic: Real-time photo-realistic slam with gaussian splatting and
@@ -92,6 +108,16 @@ X.~Lang, L.~Li, C.~Wu, C.~Zhao, L.~Liu, Y.~Liu, J.~Lv, and X.~Zuo,
 Y.~Xie, Z.~Huang, J.~Wu, and J.~Ma, ``Gs-livm: Real-time photo-realistic
   lidar-inertial-visual mapping with gaussian splatting,'' \emph{arXiv preprint
   arXiv:2410.17084}, 2024.
+
+\bibitem{xiao2024liv}
+R.~Xiao, W.~Liu, Y.~Chen, and L.~Hu, ``Liv-gs: Lidar-vision integration for 3d
+  gaussian splatting slam in outdoor environments,'' \emph{IEEE Robotics and
+  Automation Letters}, 2024.
+
+\bibitem{zhao2025lvi}
+H.~Zhao, W.~Guan, and P.~Lu, ``Lvi-gs: Tightly-coupled lidar-visual-inertial
+  slam using 3d gaussian splatting,'' \emph{IEEE Transactions on
+  Instrumentation and Measurement}, 2025.
 
 \bibitem{hong2025gs}
 S.~Hong, C.~Zheng, Y.~Shen, C.~Li, F.~Zhang, T.~Qin, and S.~Shen, ``Gs-livo:

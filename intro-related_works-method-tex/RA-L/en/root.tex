@@ -15,6 +15,7 @@
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage[table]{xcolor}
+\usepackage[hidelinks]{hyperref}
 \hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
 % 数据集、序列和代表帧名称统一使用正文 Times 斜体，避免被 caption 小型大写环境改成缺失字体形状。
 \newcommand{\datasetname}[1]{\mbox{\normalfont\itshape #1}}
@@ -81,9 +82,9 @@ The main contributions are as follows:
 
 NeRF~\cite{mildenhall2021nerf} and its follow-up works have demonstrated the advantages of radiance field representations for novel view synthesis and continuous appearance modeling, yet the costly sampling and integration inherent in volume rendering make it difficult to meet the demands of real-time incremental reconstruction. 3D Gaussian Splatting (3DGS)~\cite{kerbl20233d} replaces volume integration with explicit Gaussian primitives and differentiable rasterization, achieving clear advantages in rendering speed and optimization efficiency that quickly make it an important foundation for online photo-realistic mapping.
 
-Research around 3DGS advances along two directions. One line of work targets geometric quality: 2DGS~\cite{huang20242d}, GaussianSurfels~\cite{dai2024high}, and PGSR~\cite{chen2024pgsr} improve geometric consistency through surface-oriented Gaussians, depth rasterization, and normal constraints. These methods show that explicit surface orientation is better suited than 3D ellipsoids for carrying depth and normal priors, a property that is particularly relevant for incremental systems. Another line of work targets feed-forward Gaussian priors: pixelSplat~\cite{charatan2024pixelsplat}, MVSplat~\cite{chen2024mvsplat}, and MVSGaussian predict generalizable Gaussian representations from a small number of input images via probabilistic sampling or cost-volume mechanisms. Although these methods primarily address offline or one-shot multi-view reconstruction, the geometric and appearance priors embodied in their outputs open new possibilities for initialization and completion in online systems.
+Research around 3DGS advances along two directions. One line of work targets geometric quality: 2DGS~\cite{huang20242d}, GaussianSurfels~\cite{dai2024high}, PGSR~\cite{chen2024pgsr}, and LI-GS~\cite{jiang2024li} improve geometric consistency through surface-oriented Gaussians, depth rasterization, LiDAR incorporation, and normal constraints. These methods show that explicit surface orientation is better suited than 3D ellipsoids for carrying depth and normal priors, a property that is particularly relevant for incremental systems. Another line of work targets feed-forward Gaussian priors: pixelSplat~\cite{charatan2024pixelsplat}, MVSplat~\cite{chen2024mvsplat}, and MVSGaussian~\cite{liu2025mvsgaussian} predict generalizable Gaussian representations from a small number of input images via probabilistic sampling or cost-volume mechanisms. Although these methods primarily address offline or one-shot multi-view reconstruction, the geometric and appearance priors embodied in their outputs open new possibilities for initialization and completion in online systems.
 
-In online mapping, MonoGS~\cite{matsuki2024gaussian}, GS-SLAM~\cite{yan2024gs}, SplaTAM~\cite{keetha2024splatam}, and Photo-SLAM~\cite{huang2024photo} have demonstrated that 3DGS can serve as the unified map representation for monocular online systems, coupling tracking, mapping, and rendering on a single Gaussian map, but these works target only indoor scenes. For large-scale outdoor environments, LiDAR-inertial-camera fusion provides more stable poses and geometric observations. Gaussian-LIC~\cite{lang2024gaussian} initializes a 3DGS map from LiDAR points and visual triangulation. GS-LIVM~\cite{xie2024gs} and GS-LIVO~\cite{hong2025gs} further address sparse LiDAR coverage, local window optimization, and resource constraints. Gaussian-LIC2~\cite{lang2025gaussianlic2} introduces depth completion priors to improve Gaussian initialization. These works are closest to our problem setting, yet they still primarily adopt a 3DGS back-end, and learned priors are mostly limited to point placement or depth completion rather than predicting complete attributes such as scale, orientation, color, and opacity. We adopt 2DGS surfels as the map representation under LIVO-provided poses and predict complete new surfel attributes through a feed-forward network, thereby improving the initial quality at the incremental insertion stage.
+In online mapping, MonoGS~\cite{matsuki2024gaussian}, GS-SLAM~\cite{yan2024gs}, SplaTAM~\cite{keetha2024splatam}, and Photo-SLAM~\cite{huang2024photo} have demonstrated that 3DGS can serve as the unified map representation for monocular online systems, coupling tracking, mapping, and rendering on a single Gaussian map, but these works target only indoor scenes. For large-scale outdoor environments, LiDAR-inertial-camera fusion provides more stable poses and geometric observations. LIV-GaussMap~\cite{hong2024liv} and Gaussian-LIC~\cite{lang2024gaussian} demonstrate real-time LiDAR-inertial-visual Gaussian mapping, with Gaussian-LIC initializing a 3DGS map from LiDAR points and visual triangulation. GS-LIVM~\cite{xie2024gs}, LiV-GS~\cite{xiao2024liv}, LVI-GS~\cite{zhao2025lvi}, and GS-LIVO~\cite{hong2025gs} further address outdoor Gaussian mapping, sensor fusion, local window optimization, and resource constraints. Gaussian-LIC2~\cite{lang2025gaussianlic2} introduces depth completion priors to improve Gaussian initialization. These works are closest to our problem setting, yet they still primarily adopt a 3DGS back-end, and learned priors are mostly limited to point placement or depth completion rather than predicting complete attributes such as scale, orientation, color, and opacity. We adopt 2DGS surfels as the map representation under LIVO-provided poses and predict complete new surfel attributes through a feed-forward network, thereby improving the initial quality at the incremental insertion stage.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % III. METHOD
@@ -208,7 +209,7 @@ The feed-forward network is trained without any external multi-view annotated da
 
 \begin{table*}[!t]
 \centering
-\caption{Novel-view RGB rendering results on R3LIVE (Avia), MCD (OS1-64), and self-collected campus datasets. Format: PSNR$\uparrow$ $|$ SSIM$\uparrow$ $|$ LPIPS$\downarrow$. Best results in bold.}
+\caption{Quantitative rendering performance on public multimodal and self-collected campus datasets. Format: PSNR$\uparrow$ $|$ SSIM$\uparrow$ $|$ LPIPS$\downarrow$. Best results are shown in bold.}
 \label{tab:r3live_rendering}
 \renewcommand{\arraystretch}{1.15}
 \setlength{\tabcolsep}{8pt}
@@ -282,11 +283,11 @@ Table~\ref{tab:r3live_rendering} presents the quantitative results on R3LIVE (Av
 
 \subsection{Ablation Study: Effect of the Feed-Forward Regressor}
 
-To verify the contribution of the feed-forward regressor to incremental 2DGS mapping, we conduct an ablation study on \datasetname{hku\_campus\_00}. We denote the system without the regressor (using rule-based initialization) as Baseline and the full system as Ours. Unlike comparisons on a few representative frames, we collect the optimization trajectories of all training frames and plot them against the number of post-insertion optimization steps (\texttt{train\_times}), evaluating from three angles: (i) early quality at a fixed optimization budget, (ii) overall convergence benefit within the first 16 steps (AUC), and (iii) the number of steps required to reach a given quality threshold. The PSNR, SSIM, and LPIPS thresholds are set to 25.0, 0.70, and 0.18, respectively.
+To verify the contribution of the feed-forward regressor to incremental 2DGS mapping, we conduct an ablation study on \datasetname{hku\_campus\_00}. We denote the system without the regressor (using rule-based initialization) as Baseline and the full system as Ours. Unlike comparisons on a few representative frames, we compute statistics from the optimization trajectories of all training frames over post-insertion optimization steps. The evaluation focuses on two aspects: (i) rendering quality after 16 optimization steps and (ii) the number of steps required to reach a given quality threshold. The PSNR, SSIM, and LPIPS thresholds are set to 25.0, 0.70, and 0.18, respectively.
 
 \begin{table}[!t]
 \centering
-\caption{Ablation results on \datasetname{hku\_campus\_00}. Statistics are computed over the optimization trajectories of all training frames. The first two rows report mean $\pm$ std at 16 steps; the middle two rows report the AUC over the first 16 steps; the last two rows report the mean $\pm$ std steps to reach the quality threshold, with the number of frames that successfully reach the threshold in parentheses.}
+\caption{Ablation results on \datasetname{hku\_campus\_00}. Statistics are computed over the optimization trajectories of all training frames. The first two rows report mean $\pm$ std at 16 steps; the last two rows report the mean $\pm$ std steps to reach the quality threshold.}
 \label{tab:ablation_regressor}
 \renewcommand{\arraystretch}{1.18}
 \resizebox{\columnwidth}{!}{%
@@ -297,24 +298,20 @@ To verify the contribution of the feed-forward regressor to incremental 2DGS map
 Baseline (16 steps) & 23.97 $\pm$ 2.91 & 0.800 $\pm$ 0.071 & 0.213 $\pm$ 0.055 \\
 Ours (16 steps) & \textbf{24.34 $\pm$ 2.74} & \textbf{0.813 $\pm$ 0.063} & \textbf{0.195 $\pm$ 0.048} \\
 \midrule
-Baseline (AUC@16) & 362.96 $\pm$ 44.54 & 12.251 $\pm$ 1.302 & 4.266 $\pm$ 0.978 \\
-Ours (AUC@16) & \textbf{370.57 $\pm$ 40.43} & \textbf{12.475 $\pm$ 1.149} & \textbf{4.033 $\pm$ 0.866} \\
-\midrule
-Baseline (time-to-quality) & 20.4 $\pm$ 28.1 (255/391) & 3.2 $\pm$ 6.2 (373/391) & 27.0 $\pm$ 24.5 (257/391) \\
-Ours (time-to-quality) & \textbf{17.7 $\pm$ 26.0 (281/391)} & \textbf{3.1 $\pm$ 10.2 (382/391)} & \textbf{19.6 $\pm$ 15.6 (323/391)} \\
+Baseline (time-to-quality) & 20.4 $\pm$ 28.1 & 3.2 $\pm$ 6.2 & 27.0 $\pm$ 24.5 \\
+Ours (time-to-quality) & \textbf{17.7 $\pm$ 26.0} & \textbf{3.1 $\pm$ 10.2} & \textbf{19.6 $\pm$ 15.6} \\
 \bottomrule
 \end{tabular}%
 }
 \end{table}
 
-Table~\ref{tab:ablation_regressor} shows that introducing the feed-forward regressor consistently improves early convergence across training frames. Under a fixed budget of 16 post-insertion optimization steps, Ours outperforms Baseline on all three rendering metrics and AUC statistics. Ours also reaches the target quality in fewer average steps, with a higher number of successfully converged frames under all three thresholds. Table~\ref{tab:ablation_curves} further lists the mean convergence trends of the three metrics over the first 16 optimization steps.
+Table~\ref{tab:ablation_regressor} shows that introducing the feed-forward regressor consistently improves early convergence across training frames. Under a fixed budget of 16 post-insertion optimization steps, Ours outperforms Baseline on all three rendering metrics. Ours also reaches the target quality in fewer average steps under all three thresholds. Table~\ref{tab:ablation_curves} further lists the mean convergence trends of the three metrics over the first 16 optimization steps.
 
 \begin{table}[!t]
 \centering
-\caption{Early convergence of the feed-forward regressor ablation on \datasetname{hku\_campus\_00}. Values are averaged over valid training frames; bold indicates the better result at each step.}
+\caption{Ablation study on early convergence of the feed-forward regressor on \datasetname{hku\_campus\_00}. Values are averaged over valid training frames; bold indicates the better result at each step.}
 \label{tab:ablation_curves}
-\renewcommand{\arraystretch}{1.14}
-\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{llccccc}
 \toprule
