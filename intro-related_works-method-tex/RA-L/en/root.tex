@@ -74,7 +74,7 @@ The main contributions are as follows:
 
 \begin{figure*}[!t]
     \centering
-    \includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{../../system-pipeline.pdf}
+    \includegraphics[width=\textwidth,height=0.36\textheight,keepaspectratio]{../../system-pipeline-compress.pdf}
     \caption{System pipeline. (A) An external LiDAR-inertial-visual front-end provides synchronized RGB images, LiDAR observations, IMU measurements, and camera poses. (B) The system builds dense geometric priors via SPNet depth completion and DA3 normal estimation, generates initial 3D points from the completed depth map and LiDAR points, and then selects candidate points in under-reconstructed regions based on current-map rendering opacity and color error. (C) For each candidate point, the feed-forward Gaussian regressor aggregates point-aligned multi-view context together with geometric priors and directly predicts 2DGS surfel attributes. (D) The predicted surfels are inserted into the incremental map and further refined by online optimization, while the rendered current map is fed back as context for subsequent insertions.}
     \label{fig:system_pipeline}
 \end{figure*}
