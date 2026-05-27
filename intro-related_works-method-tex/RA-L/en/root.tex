@@ -111,7 +111,7 @@ Compared with normals obtained by directly differentiating the SPNet-completed d
 
 \begin{figure*}[!t]
     \centering
-    \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{../../net-pipeline.pdf}
+    \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{../../net-pipeline-compress.pdf}
     \caption{Architecture of the context-aware feed-forward Gaussian regressor. For the candidate points selected in the current keyframe, the network first constructs point-aligned multi-view context within a sliding window and extracts raw-image and rendered-image features from the current and historical frames through a frozen shared backbone. A cross-attention module then aggregates the historical observations, and the resulting context features are fused with geometric priors including inverse depth, DA3 normals, validity masks, and positional encodings in a residual MLP encoder. Finally, a multi-head constrained decoder predicts 2DGS surfel attributes, including scale, rotation, opacity, and SH color coefficients; the normal-guided rotation branch constructs a geometrically consistent orientation via Gram-Schmidt orthogonalization.}
     \label{fig:net-pipeline}
 \end{figure*}
