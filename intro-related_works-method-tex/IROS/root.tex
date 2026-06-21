@@ -33,7 +33,7 @@
 
 \title{\LARGE \bf LIV-Surfel: Feed-Forward Surfel Regression for LiDAR-Inertial-Visual Incremental 2DGS Mapping}
 
-\author{Author Names Omitted for Review}
+\author{}
 
 \begin{document}
 
@@ -47,7 +47,7 @@
 
 \begin{abstract}
 
-Incremental 3D scene reconstruction requires the system to continuously expand the map while receiving observations frame by frame. In online systems, newly inserted Gaussians undergo only a few optimization steps before they must support subsequent rendering, so their initial attribute quality directly affects the cumulative mapping result. Existing incremental mapping systems based on 3D Gaussian Splatting (3DGS) have two interrelated limitations: 3D ellipsoidal primitives lack explicit surface normal semantics, and rule-based initialization strategies fail to fully exploit external geometric priors. We propose a context-aware feed-forward Gaussian regression system for incremental 2D Gaussian Splatting (2DGS) scene reconstruction. The system adopts 2DGS surfels as the map representation, whose explicit surface orientation allows normal priors to directly constrain primitive orientation. Candidate points are constructed from LiDAR-completed depth and screened by current-map rendering errors. A feed-forward regression network predicts surfel attributes for each candidate point in a single forward pass by aggregating image-rendering context from the current and historical frames via cross-attention, and anchoring surfel rotation on normal priors through Gram-Schmidt orthogonalization. The network is trained through self-distillation without any external annotated dataset. Experiments on the R3LIVE, MCD and our self-collected datasets show that our method outperforms all baselines on nearly all test sequences, achieving an average improvement of 1.28\,dB PSNR over the closest multi-sensor incremental Gaussian mapping baseline. Ablation studies further confirm that the feed-forward regressor consistently improves the early convergence quality of new Gaussians under limited optimization budgets. Our code will be released on project page \href{https://github.com/duoduozi-seu.github.io/LIV-Surfel}{\textcolor{magenta}{\nolinkurl{https://github.com/duoduozi-seu.github.io/LIV-Surfel}}}.
+Incremental 3D scene reconstruction requires the system to continuously expand the map while receiving observations frame by frame. In online systems, newly inserted Gaussians undergo only a few optimization steps before they must support subsequent rendering, so their initial attribute quality directly affects the cumulative mapping result. Existing incremental mapping systems based on 3D Gaussian Splatting (3DGS) have two interrelated limitations: 3D ellipsoidal primitives lack explicit surface normal semantics, and rule-based initialization strategies fail to fully exploit external geometric priors. We propose a context-aware feed-forward Gaussian regression system for incremental 2D Gaussian Splatting (2DGS) scene reconstruction. The system adopts 2DGS surfels as the map representation, whose explicit surface orientation allows normal priors to directly constrain primitive orientation. Candidate points are constructed from LiDAR-completed depth and screened by current-map rendering errors. A feed-forward regression network predicts surfel attributes for each candidate point in a single forward pass by aggregating image-rendering context from the current and historical frames via cross-attention, and anchoring surfel rotation on normal priors through Gram-Schmidt orthogonalization. The network is trained through self-distillation without any external annotated dataset. Experiments on the R3LIVE, MCD and our self-collected datasets show that our method outperforms all baselines on nearly all test sequences, achieving an average improvement of 1.28\,dB PSNR over the closest multi-sensor incremental Gaussian mapping baseline. Ablation studies further confirm that the feed-forward regressor consistently improves the early convergence quality of new Gaussians under limited optimization budgets. Our code will be released on project page \href{https://anonymous.4open.science/r/LIV-Surfel-5224}{\textcolor{magenta}{\nolinkurl{https://anonymous.4open.science/r/LIV-Surfel-5224}}}.
 
 \end{abstract}
 
@@ -291,10 +291,6 @@ Table~\ref{tab:r3live_rendering} presents the quantitative results on R3LIVE (Av
 \label{fig:qualitative_compare}
 \end{figure*}
 
-\subsection{Ablation Study: Effect of the Feed-Forward Regressor}
-
-To verify the contribution of the feed-forward regressor to incremental 2DGS mapping, we conduct an ablation study on \datasetname{hku\_campus\_00}. We denote the system without the regressor (using rule-based initialization) as Baseline and the full system as Ours. Unlike comparisons on a few representative frames, we compute statistics from the optimization trajectories of all training frames over the steps after insertion. The evaluation focuses on two aspects: (i) rendering quality at 16 steps after insertion and (ii) the number of steps after insertion required to reach preset metric-specific thresholds. The PSNR, SSIM, and LPIPS thresholds are set to 25.0, 0.70, and 0.18, respectively.
-
 \begin{table}[!t]
 \centering
 \caption{Ablation results on \datasetname{hku\_campus\_00}. Statistics are computed over the optimization trajectories of all training frames. Part (a) reports rendering quality at 16 steps after insertion; Part (b) reports the mean $\pm$ std steps after insertion required to reach preset quality thresholds.}
@@ -319,6 +315,10 @@ Ours & \textbf{17.7 $\pm$ 26.0} & \textbf{3.1 $\pm$ 10.2} & \textbf{19.6 $\pm$ 1
 \end{tabular}%
 }
 \end{table}
+
+\subsection{Ablation Study: Effect of the Feed-Forward Regressor}
+
+To verify the contribution of the feed-forward regressor to incremental 2DGS mapping, we conduct an ablation study on \datasetname{hku\_campus\_00}. We denote the system without the regressor (using rule-based initialization) as Baseline and the full system as Ours. Unlike comparisons on a few representative frames, we compute statistics from the optimization trajectories of all training frames over the steps after insertion. The evaluation focuses on two aspects: (i) rendering quality at 16 steps after insertion and (ii) the number of steps after insertion required to reach preset metric-specific thresholds. The PSNR, SSIM, and LPIPS thresholds are set to 25.0, 0.70, and 0.18, respectively.
 
 Table~\ref{tab:ablation_regressor} shows that introducing the feed-forward regressor consistently improves early convergence across training frames. Under a fixed budget of 16 steps after insertion, Ours outperforms Baseline on all three rendering metrics. Ours also reaches the preset metric-specific thresholds in fewer average steps under all three thresholds. Table~\ref{tab:ablation_curves} further lists the mean convergence trends of the three metrics over the first 16 steps after insertion.
 
